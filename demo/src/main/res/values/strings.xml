@@ -15,5 +15,7 @@
   -->
 
 <resources>
-    <string name="app_name">jardin</string>
+    <string name="app_name">Jardín</string>
+    <string name="print_battery_level_info">Battery Level</string>
+    <string name="print_all_info">All info</string>
 </resources>
