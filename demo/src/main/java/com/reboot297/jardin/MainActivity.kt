@@ -17,11 +17,21 @@
 package com.reboot297.jardin
 
 import android.os.Bundle
+import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
+import com.reboot297.jardin.info.Info
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        findViewById<Button>(R.id.allInfoButton).setOnClickListener {
+            Info.printAll(applicationContext)
+        }
+
+        findViewById<Button>(R.id.batteryLevelInfoButton).setOnClickListener {
+            Info.printBatteryInfo(applicationContext)
+        }
     }
 }
