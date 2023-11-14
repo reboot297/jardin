@@ -1,0 +1,3 @@
+apply from: "$project.rootDir/tools/script-lint.gradle"
+apply from: "$project.rootDir/tools/script-ktlint.gradle"
+apply from: "$project.rootDir/tools/script-detekt.gradle"
