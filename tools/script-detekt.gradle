@@ -1,0 +1,19 @@
+apply plugin: 'io.gitlab.arturbosch.detekt'
+
+tasks.detekt.jvmTarget = "1.8"
+
+tasks.named("detekt").configure {
+    config.setFrom("${project.rootDir}/tools/rules-detekt.yml")
+    disableDefaultRuleSets = true
+    reports {
+        xml.required.set(true)
+        xml.outputLocation.set(file("${project.rootDir}/build_results/detekt.xml"))
+
+        html.required.set(true)
+        html.outputLocation.set(file("${project.rootDir}/build_results/detekt.html"))
+    }
+}
+
+dependencies {
+    detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:1.23.1")
+}
