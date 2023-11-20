@@ -29,9 +29,15 @@
         android:text="@string/print_all_info" />
 
     <com.google.android.material.button.MaterialButton
-        android:id="@+id/batteryLevelInfoButton"
+        android:id="@+id/batteryFullButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/print_battery_level_info" />
+        android:text="@string/print_battery_full_info" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/batteryLightButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/print_battery_light_info" />
 
 </LinearLayout>

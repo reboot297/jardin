@@ -27,11 +27,15 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         findViewById<Button>(R.id.allInfoButton).setOnClickListener {
-            Info.printAll(applicationContext)
+            Info().mainInfo(applicationContext).print()
         }
 
-        findViewById<Button>(R.id.batteryLevelInfoButton).setOnClickListener {
-            Info.printBatteryInfo(applicationContext)
+        findViewById<Button>(R.id.batteryFullButton).setOnClickListener {
+            Info().batteryFull(applicationContext).print()
+        }
+
+        findViewById<Button>(R.id.batteryLightButton).setOnClickListener {
+            Info().battery(applicationContext).print()
         }
     }
 }
