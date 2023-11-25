@@ -17,95 +17,41 @@
 package com.reboot297.jardin.info
 
 import android.content.Context
-import android.content.Context.BATTERY_SERVICE
-import android.os.BatteryManager
-import android.os.Build
 import android.util.Log
+
+private const val TAG = "Info"
 
 /**
  * Print Info to logcat.
  */
-object Info {
+class Info {
 
-    private const val TAG = "Info"
+    private val builder = StringBuilder()
 
-    /**
-     * Print all information to logcat.
-     *
-     * @param context application context.
-     */
-    fun printAll(context: Context) {
-        printBatteryInfo(context)
+    fun mainInfo(context: Context): Info {
+        battery(context)
+        return this
     }
 
-    /**
-     * Print information about device battery.
-     * @param context application context
-     */
-    fun printBatteryInfo(context: Context) {
-        Log.i(TAG, "--------------------BatteryInfo-------------------")
-        val batteryManager =
-            (context.getSystemService(BATTERY_SERVICE) as BatteryManager)
+    fun batteryFull(context: Context): Info {
+        builder.append("--------------------BatteryInfo-------------------").append("\n")
+        Battery(context).fullInfo(builder)
+        builder.append("--------------------End BatteryInfo----------------").append("\n")
+        return this
+    }
 
-        val builder = StringBuilder()
-        builder.append("Capacity: ")
-            .append(batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY))
-            .append(" %")
-            .append("\n")
+    fun battery(context: Context): Info {
+        builder.append("--------------------BatteryInfo-------------------").append("\n")
+        Battery(context).lightInfo(builder)
+        builder.append("--------------------End BatteryInfo----------------").append("\n")
+        return this
+    }
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val status = batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_STATUS)
-            val details = when (status) {
-                1 -> "unknown"
-                2 -> "charging"
-                3 -> "discharging"
-                4 -> "not charging"
-                5 -> "full"
-                else -> ""
-            }
-            builder.append("Status: ")
-                .append(status)
-                .append(" ($details)")
-                .append("\n")
-        }
+    fun getText(): String {
+        return builder.toString()
+    }
 
-        builder.append("Current average: ")
-            .append(batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CURRENT_AVERAGE))
-            .append(" microamperes")
-            .append("\n")
-
-        builder.append("Charge counter: ")
-            .append(batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CHARGE_COUNTER))
-            .append(" microampere-hours")
-            .append("\n")
-
-        builder.append("Current now: ")
-            .append(batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CURRENT_NOW))
-            .append(" microamperes")
-            .append("\n")
-
-        builder.append("Energy counter: ")
-            .append(batteryManager.getLongProperty(BatteryManager.BATTERY_PROPERTY_ENERGY_COUNTER))
-            .append(" nanowatt-hours")
-            .append("\n")
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            val value = batteryManager.computeChargeTimeRemaining()
-            builder.append("Charge Time Remaining: ")
-            if (value == -1L) {
-                builder.append(value).append("(computation fails)")
-            } else {
-                builder.append(value).append(" millis.")
-            }
-            builder.append("\n")
-        }
-
-        builder.append("IsCharging: ")
-            .append(batteryManager.isCharging)
-            .append("\n")
-
-        Log.i(TAG, builder.toString())
-
-        Log.i(TAG, "--------------------End BatteryInfo----------------")
+    fun print(tag: String = TAG) {
+        Log.i(tag, builder.toString())
     }
 }
