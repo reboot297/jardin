@@ -18,5 +18,7 @@
     <string name="app_name">Jardín</string>
     <string name="print_battery_full_info">Battery Full</string>
     <string name="print_battery_light_info">Battery Light</string>
+    <string name="print_bluetooth_full_info">Bluetooth Full</string>
+    <string name="print_bluetooth_light_info">Bluetooth Light</string>
     <string name="print_all_info">All info</string>
 </resources>

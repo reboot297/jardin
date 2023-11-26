@@ -30,6 +30,7 @@ class Info {
 
     fun mainInfo(context: Context): Info {
         battery(context)
+        bluetooth(context)
         return this
     }
 
@@ -46,6 +47,21 @@ class Info {
         builder.append("--------------------End BatteryInfo----------------").append("\n")
         return this
     }
+
+    fun bluetoothFull(context: Context): Info {
+        builder.append("--------------------BluetoothInfo-------------------").append("\n")
+        Bluetooth(context).fullInfo(builder)
+        builder.append("--------------------End BluetoothInfo----------------").append("\n")
+        return this
+    }
+
+    fun bluetooth(context: Context): Info {
+        builder.append("--------------------BluetoothInfo-------------------").append("\n")
+        Bluetooth(context).lightInfo(builder)
+        builder.append("--------------------End BluetoothInfo----------------").append("\n")
+        return this
+    }
+
 
     fun getText(): String {
         return builder.toString()

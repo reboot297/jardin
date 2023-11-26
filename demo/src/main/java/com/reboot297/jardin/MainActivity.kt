@@ -37,5 +37,13 @@ class MainActivity : AppCompatActivity() {
         findViewById<Button>(R.id.batteryLightButton).setOnClickListener {
             Info().battery(applicationContext).print()
         }
+
+        findViewById<Button>(R.id.bluetoothFullButton).setOnClickListener {
+            Info().bluetoothFull(applicationContext).print()
+        }
+
+        findViewById<Button>(R.id.bluetoothLightButton).setOnClickListener {
+            Info().bluetooth(applicationContext).print()
+        }
     }
 }
