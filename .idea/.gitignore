@@ -6,4 +6,6 @@
 /kotlinc.xml
 /compiler.xml
 /gradle.xml
+/migrations.xml
+/appInsightsSettings.xml
 /deploymentTargetDropDown.xml
