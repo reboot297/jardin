@@ -25,51 +25,61 @@ import android.os.Build
 /**
  * Info about battery state.
  */
-internal class Battery constructor(
-    private val context: Context
-) {
+class Battery internal constructor(
+    context: Context,
+    private val builder: StringBuilder,
+    private val info: Info,
+) : Base(context) {
     private val batteryManager =
         (context.getSystemService(Context.BATTERY_SERVICE) as BatteryManager)
 
+    private val intent = context.registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
 
-    /**
-     * Get full Info about battery.
-     */
-    fun fullInfo(builder: StringBuilder) {
-        lightInfo(builder)
-        val intent = context.registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
-        isPresent(intent, builder)
-        builder.append("-----------\n")
-        isBatteryLow(intent, builder)
-        currentAverage(builder)
-        chargeCounter(builder)
-        currentNow(builder)
-        energyCounter(builder)
-        builder.append("-----------\n")
-        isCharging(builder)
-        chargingStatus(intent, builder)
-        chargingSource(intent, builder)
-        remainingChargeTime(builder)
-        builder.append("-----------\n")
-        health(intent, builder)
-        technology(intent, builder)
-        temperature(intent, builder)
-        voltage(intent, builder)
-        cycleCount(intent, builder)
+
+    init {
+        builder.append("--------------------BatteryInfo-------------------").append("\n")
     }
 
     /**
      * Get brief info about battery.
      */
-    fun lightInfo(builder: StringBuilder) {
-        batteryLevel(builder)
-        batteryStatus(builder)
+    fun briefInfo(): Info {
+        batteryLevel()
+        batteryStatus()
+        return build()
+    }
+
+    /**
+     * Get full Info about battery.
+     */
+    fun fullInfo(): Info {
+        batteryLevel()
+        batteryStatus()
+        isPresent()
+        builder.append("-----------\n")
+        isBatteryLow()
+        currentAverage()
+        chargeCounter()
+        currentNow()
+        energyCounter()
+        builder.append("-----------\n")
+        isCharging()
+        chargingStatus()
+        chargingSource()
+        remainingChargeTime()
+        builder.append("-----------\n")
+        health()
+        technology()
+        temperature()
+        voltage()
+        cycleCount()
+        return build()
     }
 
     /**
      * Battery charging status.
      */
-    private fun batteryStatus(builder: StringBuilder) {
+    fun batteryStatus(): Battery {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val status = batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_STATUS)
             val details = when (status) {
@@ -85,35 +95,38 @@ internal class Battery constructor(
                 .append(" ($details)")
                 .append("\n")
         }
+        return this
     }
 
     /**
      * Remaining battery capacity as an integer percentage of total capacity (with no fractional part).
      */
-    private fun batteryLevel(builder: StringBuilder) {
+    fun batteryLevel(): Battery {
         builder.append("Level: ")
             .append(batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY))
             .append(" %")
             .append("\n")
+        return this
     }
 
 
     /**
      * Check if Battery is present.
      */
-    private fun isPresent(intent: Intent?, builder: StringBuilder) {
+    fun isPresent(): Battery {
         intent?.let {
             val isPresent = intent.getBooleanExtra(BatteryManager.EXTRA_PRESENT, false)
             builder.append("isBatteryAvailable: ")
                 .append(isPresent)
                 .append("\n")
         }
+        return this
     }
 
     /**
      * Boolean field indicating whether the battery is currently considered to be low.
      */
-    private fun isBatteryLow(intent: Intent?, builder: StringBuilder) {
+    fun isBatteryLow(): Battery {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             intent?.let {
                 val isBatteryLow = intent.getBooleanExtra(BatteryManager.EXTRA_BATTERY_LOW, false)
@@ -122,6 +135,7 @@ internal class Battery constructor(
                     .append("\n")
             }
         }
+        return this
     }
 
     /**
@@ -131,7 +145,7 @@ internal class Battery constructor(
      * The time period over which the average is computed may depend on the fuel gauge hardware
      * and its configuration.
      */
-    private fun currentAverage(builder: StringBuilder) {
+    fun currentAverage(): Battery {
         val value = batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CURRENT_AVERAGE)
         val details = if (value < 0) {
             "discharging"
@@ -142,16 +156,20 @@ internal class Battery constructor(
             .append(value)
             .append("(microamperes, $details)")
             .append("\n")
+
+        return this
     }
 
     /**
      * Battery capacity in microampere-hours.
      */
-    private fun chargeCounter(builder: StringBuilder) {
+    fun chargeCounter(): Battery {
         builder.append("Charge counter: ")
             .append(batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CHARGE_COUNTER))
             .append("(microampere-hours)")
             .append("\n")
+
+        return this
     }
 
     /**
@@ -159,7 +177,7 @@ internal class Battery constructor(
      * Positive values indicate net current entering the battery from a charge source,
      * negative values indicate net current discharging from the battery.
      */
-    private fun currentNow(builder: StringBuilder) {
+    fun currentNow(): Battery {
         val value = batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CURRENT_NOW)
         val details = if (value < 0) {
             "discharging"
@@ -170,32 +188,36 @@ internal class Battery constructor(
             .append(value)
             .append("(in microamperes, $details)")
             .append("\n")
+        return this
     }
 
     /**
      * Battery remaining energy.
      */
-    private fun energyCounter(builder: StringBuilder) {
+    fun energyCounter(): Battery {
         builder.append("Energy counter: ")
             .append(batteryManager.getLongProperty(BatteryManager.BATTERY_PROPERTY_ENERGY_COUNTER))
             .append("(nanowatt-hours)")
             .append("\n")
+
+        return this
     }
 
     /**
      * Get Info about charging status and write to the [StringBuilder]
      */
-    private fun isCharging(builder: StringBuilder) {
+    fun isCharging(): Battery {
         builder.append("IsCharging: ")
             .append(batteryManager.isCharging)
             .append("\n")
+        return this
     }
 
     /**
      * Get Info about charging status and write to the [StringBuilder]
      * The data is extracted from [Intent]
      */
-    private fun chargingStatus(intent: Intent?, builder: StringBuilder) {
+    fun chargingStatus(): Battery {
         intent?.let {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
                 val status = intent.getIntExtra(BatteryManager.EXTRA_CHARGING_STATUS, 0)
@@ -204,13 +226,14 @@ internal class Battery constructor(
                     .append("\n")
             }
         }
+        return this
     }
 
     /**
      * Get Info about charging source and write to the [StringBuilder]
      * The data is extracted from [Intent]
      */
-    private fun chargingSource(intent: Intent?, builder: StringBuilder) {
+    fun chargingSource(): Battery {
         intent?.let {
             val plugged = intent.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0)
             val details = when (plugged) {
@@ -225,12 +248,13 @@ internal class Battery constructor(
                 .append("($details)")
                 .append("\n")
         }
+        return this
     }
 
     /**
      * Calculate remaining charge time and write to the [StringBuilder]
      */
-    private fun remainingChargeTime(builder: StringBuilder) {
+    fun remainingChargeTime(): Battery {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             val value = batteryManager.computeChargeTimeRemaining()
             builder.append("Charge Time Remaining: ")
@@ -241,6 +265,7 @@ internal class Battery constructor(
             }
             builder.append("\n")
         }
+        return this
     }
 
 
@@ -248,7 +273,7 @@ internal class Battery constructor(
      * Get Info about Battery health and write to the [StringBuilder]
      * The data is extracted from [Intent]
      */
-    private fun health(intent: Intent?, builder: StringBuilder) {
+    fun health(): Battery {
         intent?.let {
             val health = intent.getIntExtra(BatteryManager.EXTRA_HEALTH, 0)
             val details = when (health) {
@@ -266,26 +291,28 @@ internal class Battery constructor(
                 .append(" ($details)")
                 .append("\n")
         }
+        return this
     }
 
     /**
      * Get Info about Battery technology and write to the [StringBuilder]
      * The data is extracted from [Intent]
      */
-    private fun technology(intent: Intent?, builder: StringBuilder) {
+    fun technology(): Battery {
         intent?.let {
             val tech = intent.getStringExtra(BatteryManager.EXTRA_TECHNOLOGY)
             builder.append("Technology: ")
                 .append(tech)
                 .append("\n")
         }
+        return this
     }
 
     /**
      * Get Info about Battery temperature and write to the [StringBuilder]
      * The data is extracted from [Intent]
      */
-    private fun temperature(intent: Intent?, builder: StringBuilder) {
+    fun temperature(): Battery {
         intent?.let {
             val temperature = intent.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, 0)
             val details = "${temperature / 10f} °C"
@@ -294,13 +321,14 @@ internal class Battery constructor(
                 .append("($details)")
                 .append("\n")
         }
+        return this
     }
 
     /**
      * Get Info about Battery voltage and write to the [StringBuilder]
      * The data is extracted from [Intent]
      */
-    private fun voltage(intent: Intent?, builder: StringBuilder) {
+    fun voltage(): Battery {
         intent?.let {
             val voltage = intent.getIntExtra(BatteryManager.EXTRA_VOLTAGE, 0)
             val details = "${voltage / 1000f} V"
@@ -309,13 +337,14 @@ internal class Battery constructor(
                 .append("($details)")
                 .append("\n")
         }
+        return this
     }
 
     /**
      * Get Info about Cycle count and write to the [StringBuilder]
      * The data is extracted from [Intent]
      */
-    private fun cycleCount(intent: Intent?, builder: StringBuilder) {
+    fun cycleCount(): Battery {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             intent?.let {
                 val count = intent.getIntExtra(BatteryManager.EXTRA_CYCLE_COUNT, 0)
@@ -324,5 +353,11 @@ internal class Battery constructor(
                     .append("\n")
             }
         }
+        return this
+    }
+
+    fun build(): Info {
+        builder.append("--------------------End BatteryInfo----------------").append("\n")
+        return info
     }
 }

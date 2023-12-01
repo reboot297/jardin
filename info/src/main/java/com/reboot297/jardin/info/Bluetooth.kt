@@ -32,82 +32,85 @@ import androidx.core.content.ContextCompat
 /**
  * Info about bluetooth.
  */
-internal class Bluetooth(
-    private val context: Context
-) {
+class Bluetooth internal constructor(
+    private val context: Context,
+    private val builder: StringBuilder,
+    private val info: Info,
+) : Base(context) {
 
     private val bluetoothManager: BluetoothManager =
         context.getSystemService(BluetoothManager::class.java)
     private val bluetoothAdapter: BluetoothAdapter? = bluetoothManager.adapter
 
-    /**
-     * Full info about bluetooth state.
-     */
-    fun fullInfo(builder: StringBuilder) {
-        supportFeature(builder)
-        isEnabled(builder)
-        name(builder)
-        address(builder)
-
-        discoverableTimeout(builder)
-        isDiscovering(builder)
-
-        state(builder)
-        scanMode(builder)
-        isLeAudioSupported(builder)
-        isLeAudioBroadcastSourceSupported(builder)
-        isLeAudioBroadcastAssistantSupported(builder)
-        maxConnectedAudioDevices(builder)
-
-        isLe2MPhySupported(builder)
-        isLeCodedPhySupported(builder)
-        isLeExtendedAdvertisingSupported(builder)
-        leMaximumAdvertisingDataLength(builder)
-        isLePeriodicAdvertisingSupported(builder)
-        isMultipleAdvertisementSupported(builder)
-
-        isOffloadedFilteringSupported(builder)
-        isOffloadedScanBatchingSupported(builder)
-
-        bondedDevices(builder)
+    init {
+        builder.append("--------------------BluetoothInfo-------------------").append("\n")
     }
 
     /**
      * BriefInfo about bluetooth state.
      */
-    fun lightInfo(builder: StringBuilder) {
-        supportFeature(builder)
-        isEnabled(builder)
-        address(builder)
-        isDiscovering(builder)
+    fun briefInfo(): Info {
+        supportFeature()
+        isEnabled()
+        address()
+        isDiscovering()
+        return build()
+    }
+
+    /**
+     * Full info about bluetooth state.
+     */
+    fun fullInfo(): Info {
+        supportFeature()
+        isEnabled()
+        name()
+        address()
+
+        discoverableTimeout()
+        isDiscovering()
+
+        state()
+        scanMode()
+        isLeAudioSupported()
+        isLeAudioBroadcastSourceSupported()
+        isLeAudioBroadcastAssistantSupported()
+        maxConnectedAudioDevices()
+
+        isLe2MPhySupported()
+        isLeCodedPhySupported()
+        isLeExtendedAdvertisingSupported()
+        leMaximumAdvertisingDataLength()
+        isLePeriodicAdvertisingSupported()
+        isMultipleAdvertisementSupported()
+
+        isOffloadedFilteringSupported()
+        isOffloadedScanBatchingSupported()
+
+        bondedDevices()
+        return build()
     }
 
     /**
      * Capability to communicate with other devices via Bluetooth or vai Bluetooth Low Energy radio.
      */
-    private fun supportFeature(builder: StringBuilder) {
+    fun supportFeature(): Bluetooth {
         builder.append("isBluetoothSupported: ")
             .append(context.packageManager.hasSystemFeature(PackageManager.FEATURE_BLUETOOTH))
             .append("\n")
             .append("isBluetoothLESupported: ")
             .append(context.packageManager.hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE))
             .append("\n")
+        return this
     }
 
     /**
      * True if Bluetooth is currently enabled and ready for use.
      * Equivalent to: getBluetoothState() == STATE_ON
      */
-    private fun isEnabled(builder: StringBuilder) {
+    fun isEnabled(): Bluetooth {
         val enabled = if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.R) {
-            if (ContextCompat.checkSelfPermission(
-                    context,
-                    Manifest.permission.BLUETOOTH
-                ) == PackageManager.PERMISSION_GRANTED
-            ) {
+            checkPermission(Manifest.permission.BLUETOOTH) ?: let {
                 bluetoothAdapter?.isEnabled ?: false
-            } else {
-                "Manifest.permission.BLUETOOTH is disabled"
             }
         } else {
             bluetoothAdapter?.isEnabled ?: false
@@ -116,6 +119,7 @@ internal class Bluetooth(
         builder.append("adapter.isEnabled: ")
             .append(enabled)
             .append("\n")
+        return this
     }
 
 
@@ -125,32 +129,21 @@ internal class Bluetooth(
      */
 
     @SuppressLint("MissingPermission")
-    private fun name(builder: StringBuilder) {
+    fun name(): Bluetooth {
         val name = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            if (ContextCompat.checkSelfPermission(
-                    context,
-                    Manifest.permission.BLUETOOTH_CONNECT
-                ) == PackageManager.PERMISSION_GRANTED
-            ) {
+            checkPermission(Manifest.permission.BLUETOOTH_CONNECT) ?: let {
                 bluetoothAdapter?.name.toString()
-            } else {
-                "Manifest.permission.BLUETOOTH_CONNECT is disabled"
             }
         } else {
-            if (ContextCompat.checkSelfPermission(
-                    context,
-                    Manifest.permission.BLUETOOTH
-                ) == PackageManager.PERMISSION_GRANTED
-            ) {
+            checkPermission(Manifest.permission.BLUETOOTH) ?: let {
                 bluetoothAdapter?.name.toString()
-            } else {
-                "Manifest.permission.BLUETOOTH is disabled"
             }
         }
 
         builder.append("adapter.name: ")
             .append(name)
             .append("\n")
+        return this
     }
 
     /**
@@ -158,49 +151,33 @@ internal class Bluetooth(
      * For example, "00:11:22:AA:BB:CC".
      */
     @SuppressLint("HardwareIds")
-    private fun address(builder: StringBuilder) {
+    fun address(): Bluetooth {
         val address = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            if (ContextCompat.checkSelfPermission(
-                    context,
-                    Manifest.permission.BLUETOOTH_CONNECT
-                ) == PackageManager.PERMISSION_GRANTED
-            ) {
+            checkPermission(Manifest.permission.BLUETOOTH_CONNECT) ?: let {
                 bluetoothAdapter?.address.toString()
-            } else {
-                "Manifest.permission.BLUETOOTH_CONNECT is disabled"
             }
         } else {
-            if (ContextCompat.checkSelfPermission(
-                    context,
-                    Manifest.permission.BLUETOOTH
-                ) == PackageManager.PERMISSION_GRANTED
-            ) {
+            checkPermission(Manifest.permission.BLUETOOTH) ?: let {
                 bluetoothAdapter?.address.toString()
-            } else {
-                "Manifest.permission.BLUETOOTH is disabled"
             }
         }
 
         builder.append("adapter.address: ")
             .append(address)
             .append("\n")
+
+        return this
     }
 
     /**
      * The timeout duration of the SCAN_MODE_CONNECTABLE_DISCOVERABLE.
      */
     @SuppressLint("MissingPermission")
-    private fun discoverableTimeout(builder: StringBuilder) {//TODO check this
+    fun discoverableTimeout(): Bluetooth {//TODO check this
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             val timeout = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                if (ContextCompat.checkSelfPermission(
-                        context,
-                        Manifest.permission.BLUETOOTH_SCAN
-                    ) == PackageManager.PERMISSION_GRANTED
-                ) {
+                checkPermission(Manifest.permission.BLUETOOTH_SCAN) ?: let {
                     bluetoothAdapter?.discoverableTimeout?.toString()
-                } else {
-                    "Manifest.permission.BLUETOOTH_SCAN is disabled"
                 }
             } else {
                 bluetoothAdapter?.discoverableTimeout
@@ -210,53 +187,37 @@ internal class Bluetooth(
                 .append(timeout)
                 .append("\n")
         }
+        return this
     }
 
     /**
      * Check if the local Bluetooth adapter is currently in the device discovery process.
      */
     @SuppressLint("MissingPermission")
-    private fun isDiscovering(builder: StringBuilder) {
+    fun isDiscovering(): Bluetooth {
         val isDiscovering = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            if (ContextCompat.checkSelfPermission(
-                    context,
-                    Manifest.permission.BLUETOOTH_SCAN
-                ) == PackageManager.PERMISSION_GRANTED
-            ) {
+            checkPermission(Manifest.permission.BLUETOOTH_SCAN) ?: let {
                 bluetoothAdapter?.isDiscovering.toString()
-            } else {
-                "Manifest.permission.BLUETOOTH_SCAN is disabled"
             }
         } else {
-            if (ContextCompat.checkSelfPermission(
-                    context,
-                    Manifest.permission.BLUETOOTH
-                ) == PackageManager.PERMISSION_GRANTED
-            ) {
+            checkPermission(Manifest.permission.BLUETOOTH) ?: let {
                 bluetoothAdapter?.isDiscovering.toString()
-            } else {
-                "Manifest.permission.BLUETOOTH is disabled"
             }
         }
 
         builder.append("adapter.isDiscovering: ")
             .append(isDiscovering)
             .append("\n")
+        return this
     }
 
     /**
      * The current state of the local Bluetooth adapter.
      */
-    private fun state(builder: StringBuilder) {
+    fun state(): Bluetooth {
         val state = if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.R) {
-            if (ContextCompat.checkSelfPermission(
-                    context,
-                    Manifest.permission.BLUETOOTH
-                ) == PackageManager.PERMISSION_GRANTED
-            ) {
+            checkPermission(Manifest.permission.BLUETOOTH) ?: let {
                 bluetoothAdapter?.state
-            } else {
-                "Manifest.permission.BLUETOOTH is disabled"
             }
         } else {
             bluetoothAdapter?.state
@@ -275,6 +236,7 @@ internal class Bluetooth(
             .append(state)
             .append("($details)")
             .append("\n")
+        return this
     }
 
     /**
@@ -283,31 +245,19 @@ internal class Bluetooth(
      * from remote Bluetooth devices.
      */
     @SuppressLint("MissingPermission")
-    private fun scanMode(builder: StringBuilder) {
+    fun scanMode(): Bluetooth {
         val scanMode = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            if (ContextCompat.checkSelfPermission(
-                    context,
-                    Manifest.permission.BLUETOOTH_SCAN
-                ) == PackageManager.PERMISSION_GRANTED
-            ) {
+            checkPermission(Manifest.permission.BLUETOOTH_SCAN) ?: let {
                 bluetoothAdapter?.scanMode
-            } else {
-                "Manifest.permission.BLUETOOTH_SCAN is disabled"
             }
         } else {
-            if (ContextCompat.checkSelfPermission(
-                    context,
-                    Manifest.permission.BLUETOOTH
-                ) == PackageManager.PERMISSION_GRANTED
-            ) {
+            checkPermission(Manifest.permission.BLUETOOTH) ?: let {
                 bluetoothAdapter?.scanMode
-            } else {
-                "Manifest.permission.BLUETOOTH is disabled"
             }
         }
 
         val details = when (scanMode) {
-            is String -> scanMode
+            is String -> ""
             BluetoothAdapter.SCAN_MODE_NONE -> "none"
             BluetoothAdapter.SCAN_MODE_CONNECTABLE -> "connectable"
             BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE -> "connectable-discoverable"
@@ -318,16 +268,16 @@ internal class Bluetooth(
             .append(scanMode)
             .append("($details)")
             .append("\n")
+        return this
     }
 
     /**
      * Check if LE Audio supported.
      */
-    private fun isLeAudioSupported(builder: StringBuilder) {
-        val value = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+    @SuppressLint("NewApi")
+    fun isLeAudioSupported(): Bluetooth {
+        val value = checkMinSdkVersion(Build.VERSION_CODES.TIRAMISU) ?: let {
             bluetoothAdapter?.isLeAudioSupported
-        } else {
-            "the value is available in API 33 and above"
         }
 
         val details = when (value) {
@@ -342,16 +292,16 @@ internal class Bluetooth(
             .append(value)
             .append("($details)")
             .append("\n")
+        return this
     }
 
     /**
      * Check if the LE audio broadcast assistant feature is supported.
      */
-    private fun isLeAudioBroadcastAssistantSupported(builder: StringBuilder) {
-        val value = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+    @SuppressLint("NewApi")
+    fun isLeAudioBroadcastAssistantSupported(): Bluetooth {
+        val value = checkMinSdkVersion(Build.VERSION_CODES.TIRAMISU) ?: let {
             bluetoothAdapter?.isLeAudioBroadcastAssistantSupported
-        } else {
-            "the value is available in API 33 and above"
         }
 
         val details = when (value) {
@@ -366,21 +316,20 @@ internal class Bluetooth(
             .append(value)
             .append("($details)")
             .append("\n")
-
+        return this
     }
 
     /**
      * Check if the LE audio broadcast source feature is supported.
      */
-    private fun isLeAudioBroadcastSourceSupported(builder: StringBuilder) {
-        val value = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+    @SuppressLint("NewApi")
+    fun isLeAudioBroadcastSourceSupported(): Bluetooth {
+        val value: Any? = checkMinSdkVersion(Build.VERSION_CODES.TIRAMISU) ?: let {
             bluetoothAdapter?.isLeAudioBroadcastSourceSupported
-        } else {
-            "the value is available in API 33 and above"
         }
 
         val details = when (value) {
-            is String -> ""
+            is String? -> ""
             BluetoothStatusCodes.FEATURE_SUPPORTED -> "feature supported"
             BluetoothStatusCodes.FEATURE_NOT_SUPPORTED -> "feature not supported"
             BluetoothStatusCodes.ERROR_BLUETOOTH_NOT_ENABLED -> "bluetooth not enabled"
@@ -391,146 +340,103 @@ internal class Bluetooth(
             .append(value)
             .append("($details)")
             .append("\n")
+        return this
     }
 
     /**
      * The maximum number of connected devices per audio profile for this device.
      */
-    @SuppressLint("MissingPermission")
-    private fun maxConnectedAudioDevices(builder: StringBuilder) {
-        val value = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                if (ContextCompat.checkSelfPermission(
-                        context,
-                        Manifest.permission.BLUETOOTH_CONNECT
-                    ) == PackageManager.PERMISSION_GRANTED
-                ) {
-                    bluetoothAdapter?.maxConnectedAudioDevices
-                } else {
-                    "Manifest.permission.BLUETOOTH_CONNECT is disabled"
-                }
-            } else {
-                if (ContextCompat.checkSelfPermission(
-                        context,
-                        Manifest.permission.BLUETOOTH
-                    ) == PackageManager.PERMISSION_GRANTED
-                ) {
-                    bluetoothAdapter?.maxConnectedAudioDevices
-                } else {
-                    "Manifest.permission.BLUETOOTH is disabled"
-                }
+    @SuppressLint("MissingPermission", "NewApi")
+    fun maxConnectedAudioDevices(): Bluetooth {
+        val value = checkMinSdkVersion(Build.VERSION_CODES.TIRAMISU) ?: let {
+            checkPermission(Manifest.permission.BLUETOOTH_CONNECT) ?: let {
+                bluetoothAdapter?.maxConnectedAudioDevices
             }
-        } else {
-            "the value is available in API 33 and above"
         }
 
         builder.append("adapter.maxConnectedAudioDevices: ")
             .append(value)
             .append("\n")
+        return this
     }
 
     /**
      * Check if LE 2M PHY feature is supported
      */
-    private fun isLe2MPhySupported(builder: StringBuilder) {
-        val value = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+    @SuppressLint("NewApi")
+    fun isLe2MPhySupported(): Bluetooth {
+        val value = checkMinSdkVersion(Build.VERSION_CODES.O) ?: let {
             if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.R) {
-                if (ContextCompat.checkSelfPermission(
-                        context,
-                        Manifest.permission.BLUETOOTH
-                    ) == PackageManager.PERMISSION_GRANTED
-                ) {
+                checkPermission(Manifest.permission.BLUETOOTH) ?: let {
                     bluetoothAdapter?.isLe2MPhySupported
-                } else {
-                    "Manifest.permission.BLUETOOTH is disabled"
                 }
             } else {
                 bluetoothAdapter?.isLe2MPhySupported
             }
-        } else {
-            "the value is available in API 26 and above"
         }
 
         builder.append("adapter.isLe2MPhySupported: ")
             .append(value)
             .append("\n")
+        return this
     }
 
     /**
      * Check if LE Coded PHY feature is supported.
      */
-    private fun isLeCodedPhySupported(builder: StringBuilder) {
-        val value = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+    @SuppressLint("NewApi")
+    fun isLeCodedPhySupported(): Bluetooth {
+        val value = checkMinSdkVersion(Build.VERSION_CODES.O) ?: let {
             if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.R) {
-                if (ContextCompat.checkSelfPermission(
-                        context,
-                        Manifest.permission.BLUETOOTH
-                    ) == PackageManager.PERMISSION_GRANTED
-                ) {
+                checkPermission(Manifest.permission.BLUETOOTH) ?: let {
                     bluetoothAdapter?.isLeCodedPhySupported
-                } else {
-                    "Manifest.permission.BLUETOOTH is disabled"
                 }
             } else {
                 bluetoothAdapter?.isLeCodedPhySupported
             }
-        } else {
-            "the value is available in API 26 and above"
         }
 
         builder.append("adapter.isLeCodedPhySupported: ")
             .append(value)
             .append("\n")
+        return this
     }
 
 
     /**
      * Check if LE Extended Advertising feature is supported.
      */
-    private fun isLeExtendedAdvertisingSupported(builder: StringBuilder) {
-        val value = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+    @SuppressLint("NewApi")
+    fun isLeExtendedAdvertisingSupported(): Bluetooth {
+        val value = checkMinSdkVersion(Build.VERSION_CODES.O) ?: let {
             if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.R) {
-                if (ContextCompat.checkSelfPermission(
-                        context,
-                        Manifest.permission.BLUETOOTH
-                    ) == PackageManager.PERMISSION_GRANTED
-                ) {
+                checkPermission(Manifest.permission.BLUETOOTH) ?: let {
                     bluetoothAdapter?.isLeExtendedAdvertisingSupported
-                } else {
-                    "Manifest.permission.BLUETOOTH is disabled"
                 }
             } else {
                 bluetoothAdapter?.isLeExtendedAdvertisingSupported
             }
-        } else {
-            "the value is available in API 26 and above"
         }
 
         builder.append("adapter.isLeExtendedAdvertisingSupported: ")
             .append(value)
             .append("\n")
+        return this
     }
 
     /**
      * The maximum LE advertising data length in bytes, if LE Extended Advertising feature is supported.
      */
-    private fun leMaximumAdvertisingDataLength(builder: StringBuilder) {
-        val value = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+    @SuppressLint("NewApi")
+    fun leMaximumAdvertisingDataLength(): Bluetooth {
+        val value = checkMinSdkVersion(Build.VERSION_CODES.O) ?: let {
             if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.R) {
-                if (ContextCompat.checkSelfPermission(
-                        context,
-                        Manifest.permission.BLUETOOTH
-                    ) == PackageManager.PERMISSION_GRANTED
-                ) {
+                checkPermission(Manifest.permission.BLUETOOTH) ?: let {
                     bluetoothAdapter?.leMaximumAdvertisingDataLength
-                } else {
-                    "Manifest.permission.BLUETOOTH is disabled"
                 }
             } else {
                 bluetoothAdapter?.leMaximumAdvertisingDataLength
             }
-        } else {
-            "the value is available in API 26 and above"
         }
 
         val details = if (value is Int) {
@@ -542,48 +448,37 @@ internal class Bluetooth(
             .append(value)
             .append("($details)")
             .append("\n")
+        return this
     }
 
     /**
      * Check if LE Periodic Advertising feature is supported.
      */
-    private fun isLePeriodicAdvertisingSupported(builder: StringBuilder) {
-        val value = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+    @SuppressLint("NewApi")
+    fun isLePeriodicAdvertisingSupported(): Bluetooth {
+        val value = checkMinSdkVersion(Build.VERSION_CODES.O) ?: let {
             if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.R) {
-                if (ContextCompat.checkSelfPermission(
-                        context,
-                        Manifest.permission.BLUETOOTH
-                    ) == PackageManager.PERMISSION_GRANTED
-                ) {
+                checkPermission(Manifest.permission.BLUETOOTH) ?: let {
                     bluetoothAdapter?.isLePeriodicAdvertisingSupported
-                } else {
-                    "Manifest.permission.BLUETOOTH is disabled"
                 }
             } else {
                 bluetoothAdapter?.isLePeriodicAdvertisingSupported
             }
-        } else {
-            "the value is available in API 26 and above"
         }
 
         builder.append("adapter.isLePeriodicAdvertisingSupported: ")
             .append(value)
             .append("\n")
+        return this
     }
 
     /**
      * Check if the multi advertisement is supported by the chipset.
      */
-    private fun isMultipleAdvertisementSupported(builder: StringBuilder) {
+    fun isMultipleAdvertisementSupported(): Bluetooth {
         val value = if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.R) {
-            if (ContextCompat.checkSelfPermission(
-                    context,
-                    Manifest.permission.BLUETOOTH
-                ) == PackageManager.PERMISSION_GRANTED
-            ) {
+            checkPermission(Manifest.permission.BLUETOOTH) ?: let {
                 bluetoothAdapter?.isMultipleAdvertisementSupported
-            } else {
-                "Manifest.permission.BLUETOOTH is disabled"
             }
         } else {
             bluetoothAdapter?.isMultipleAdvertisementSupported
@@ -592,21 +487,16 @@ internal class Bluetooth(
         builder.append("adapter.isMultipleAdvertisementSupported: ")
             .append(value)
             .append("\n")
+        return this
     }
 
     /**
      * Check if offloaded scan batching is supported.
      */
-    private fun isOffloadedScanBatchingSupported(builder: StringBuilder) {
+    fun isOffloadedScanBatchingSupported(): Bluetooth {
         val value = if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.R) {
-            if (ContextCompat.checkSelfPermission(
-                    context,
-                    Manifest.permission.BLUETOOTH
-                ) == PackageManager.PERMISSION_GRANTED
-            ) {
+            checkPermission(Manifest.permission.BLUETOOTH) ?: let {
                 bluetoothAdapter?.isOffloadedScanBatchingSupported
-            } else {
-                "Manifest.permission.BLUETOOTH is disabled"
             }
         } else {
             bluetoothAdapter?.isOffloadedScanBatchingSupported
@@ -615,21 +505,16 @@ internal class Bluetooth(
         builder.append("adapter.isOffloadedScanBatchingSupported: ")
             .append(value)
             .append("\n")
+        return this
     }
 
     /**
      * Check if chipset supports on-chip filtering.
      */
-    private fun isOffloadedFilteringSupported(builder: StringBuilder) {
+    fun isOffloadedFilteringSupported(): Bluetooth {
         val value = if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.R) {
-            if (ContextCompat.checkSelfPermission(
-                    context,
-                    Manifest.permission.BLUETOOTH
-                ) == PackageManager.PERMISSION_GRANTED
-            ) {
+            checkPermission(Manifest.permission.BLUETOOTH) ?: let {
                 bluetoothAdapter?.isOffloadedFilteringSupported
-            } else {
-                "Manifest.permission.BLUETOOTH is disabled"
             }
         } else {
             bluetoothAdapter?.isOffloadedFilteringSupported
@@ -638,13 +523,14 @@ internal class Bluetooth(
         builder.append("adapter.isOffloadedFilteringSupported: ")
             .append(value)
             .append("\n")
+        return this
     }
 
     /**
      * The set of BluetoothDevice objects that are bonded (paired) to the local adapter.
      */
     @SuppressLint("MissingPermission")
-    private fun bondedDevices(builder: StringBuilder) {
+    fun bondedDevices(): Bluetooth {
         val bondedDevices: Set<BluetoothDevice>? =
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 if (ContextCompat.checkSelfPermission(
@@ -655,7 +541,8 @@ internal class Bluetooth(
                     bluetoothAdapter?.bondedDevices
                 } else {
                     builder.append("adapter.bonded-devices: Manifest.permission.BLUETOOTH_CONNECT is disabled")
-                    return
+                        .append("\n")
+                    return this
                 }
             } else {
                 if (ContextCompat.checkSelfPermission(
@@ -666,7 +553,8 @@ internal class Bluetooth(
                     bluetoothAdapter?.bondedDevices
                 } else {
                     builder.append("adapter.bonded-devices: Manifest.permission.BLUETOOTH is disabled")
-                    return
+                        .append("\n")
+                    return this
                 }
             }
 
@@ -721,6 +609,7 @@ internal class Bluetooth(
                 .append("--------")
                 .append("\n")
         }
+        return this
     }
 
     private fun getDeviceClassName(deviceClass: Int): String {
@@ -789,5 +678,10 @@ internal class Bluetooth(
             BluetoothClass.Device.WEARABLE_WRIST_WATCH -> "WEARABLE_WRIST_WATCH"
             else -> "unknown"
         }
+    }
+
+    fun build(): Info {
+        builder.append("--------------------End BluetoothInfo----------------").append("\n")
+        return info
     }
 }

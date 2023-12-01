@@ -24,44 +24,17 @@ private const val TAG = "Info"
 /**
  * Print Info to logcat.
  */
-class Info {
+class Info(private val applicationContext: Context) {
 
     private val builder = StringBuilder()
 
-    fun mainInfo(context: Context): Info {
-        battery(context)
-        bluetooth(context)
-        return this
+    fun battery(): Battery {
+        return Battery(applicationContext, builder, this)
     }
 
-    fun batteryFull(context: Context): Info {
-        builder.append("--------------------BatteryInfo-------------------").append("\n")
-        Battery(context).fullInfo(builder)
-        builder.append("--------------------End BatteryInfo----------------").append("\n")
-        return this
+    fun bluetooth(): Bluetooth {
+        return Bluetooth(applicationContext, builder, this)
     }
-
-    fun battery(context: Context): Info {
-        builder.append("--------------------BatteryInfo-------------------").append("\n")
-        Battery(context).lightInfo(builder)
-        builder.append("--------------------End BatteryInfo----------------").append("\n")
-        return this
-    }
-
-    fun bluetoothFull(context: Context): Info {
-        builder.append("--------------------BluetoothInfo-------------------").append("\n")
-        Bluetooth(context).fullInfo(builder)
-        builder.append("--------------------End BluetoothInfo----------------").append("\n")
-        return this
-    }
-
-    fun bluetooth(context: Context): Info {
-        builder.append("--------------------BluetoothInfo-------------------").append("\n")
-        Bluetooth(context).lightInfo(builder)
-        builder.append("--------------------End BluetoothInfo----------------").append("\n")
-        return this
-    }
-
 
     fun getText(): String {
         return builder.toString()

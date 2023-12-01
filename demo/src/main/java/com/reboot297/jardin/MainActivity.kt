@@ -27,23 +27,68 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         findViewById<Button>(R.id.allInfoButton).setOnClickListener {
-            Info().mainInfo(applicationContext).print()
+            Info(applicationContext)
+                .battery()
+                .batteryLevel()
+                .batteryStatus()
+                .isPresent()
+                .isBatteryLow()
+                .currentAverage()
+                .chargeCounter()
+                .currentNow()
+                .energyCounter()
+                .isCharging()
+                .chargingStatus()
+                .chargingSource()
+                .remainingChargeTime()
+                .health()
+                .technology()
+                .temperature()
+                .voltage()
+                .cycleCount()
+                .build()
+
+                .bluetooth()
+                .supportFeature()
+                .isEnabled()
+                .name()
+                .address()
+                .discoverableTimeout()
+                .isDiscovering()
+                .state()
+                .scanMode()
+                .isLeAudioSupported()
+                .isLeAudioBroadcastSourceSupported()
+                .isLeAudioBroadcastAssistantSupported()
+                .maxConnectedAudioDevices()
+                .isLe2MPhySupported()
+                .isLeCodedPhySupported()
+                .isLeExtendedAdvertisingSupported()
+                .leMaximumAdvertisingDataLength()
+                .isLePeriodicAdvertisingSupported()
+                .isMultipleAdvertisementSupported()
+                .isOffloadedFilteringSupported()
+                .isOffloadedScanBatchingSupported()
+                .bondedDevices()
+                .build()
+
+                .print()
         }
 
         findViewById<Button>(R.id.batteryFullButton).setOnClickListener {
-            Info().batteryFull(applicationContext).print()
+            Info(applicationContext).battery().fullInfo().print()
         }
 
         findViewById<Button>(R.id.batteryLightButton).setOnClickListener {
-            Info().battery(applicationContext).print()
+            Info(applicationContext).battery().briefInfo().print()
         }
 
         findViewById<Button>(R.id.bluetoothFullButton).setOnClickListener {
-            Info().bluetoothFull(applicationContext).print()
+            Info(applicationContext).bluetooth().fullInfo().print()
         }
 
         findViewById<Button>(R.id.bluetoothLightButton).setOnClickListener {
-            Info().bluetooth(applicationContext).print()
+            Info(applicationContext).bluetooth().briefInfo().print()
         }
     }
 }
