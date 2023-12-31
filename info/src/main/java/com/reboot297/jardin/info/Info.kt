@@ -16,10 +16,15 @@
 
 package com.reboot297.jardin.info
 
+import android.app.GrammaticalInflectionManager
+import android.app.LocaleManager
 import android.content.Context
 import android.content.Intent
+import android.content.res.Configuration
 import android.os.BatteryManager
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
 import org.json.JSONObject
 
 private const val TAG = "Info"
@@ -32,6 +37,7 @@ class Info(private val applicationContext: Context) {
     private val json = JSONObject()
 
     private val battery: BatteryInfo by lazy { BatteryInfo(applicationContext, json) }
+    private val locales: LocalesInfo by lazy { LocalesInfo(applicationContext, json) }
 
     /**
      * Get battery characteristics.
@@ -173,6 +179,117 @@ class Info(private val applicationContext: Context) {
      */
     fun battery(): Info {
         battery.full()
+        return this
+    }
+
+    /**
+     * List of locales available in the application.
+     *
+     * Example output:
+     * ```
+     * {
+     *   "info-locales": {
+     *     "localeManager": {
+     *       "applicationLocales": "[es_ES]"
+     *     }
+     *   }
+     * }
+     * ```
+     * @return reference to [Info] object
+     * @see [LocaleManager.getApplicationLocales]
+     * @return instance of [Info] object
+     */
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
+    fun localesApplication(): Info {
+        locales.application()
+        return this
+    }
+
+    /**
+     * Grammatical gender.
+     *
+     * Example output:
+     * ```
+     * {
+     *   "info-locales": {
+     *     "grammaticalInflectionManager": {
+     *       "applicationGrammaticalGender": "0 (not specified)"
+     *     },
+     *     "configuration": {
+     *       "grammaticalGender": "0 (not specified)"
+     *     }
+     *   }
+     * }
+     * ```
+     * @return reference to [Info] object
+     * @see [Configuration.getGrammaticalGender]
+     * @see [GrammaticalInflectionManager.getApplicationGrammaticalGender]
+     */
+    @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
+    fun localesGrammaticalGender(): Info {
+        locales.grammaticalGender()
+        return this
+    }
+
+    /**
+     * System locals.
+     *
+     * Example output:
+     * ```
+     * {
+     *   "info-locales": {
+     *     "configuration": {
+     *       "locale": "es_ES",
+     *       "locales": "[es_ES,en_US]"
+     *     },
+     *     "localeManager": {
+     *       "systemLocales": "[es_ES,en_US]"
+     *     }
+     *   }
+     * }
+     * ```
+     * @return reference to [Info] object
+     * @see [Configuration.getLocales]
+     * @see [Configuration.locale]
+     * @see [LocaleManager.getSystemLocales]
+     */
+    fun localesSystem(): Info {
+        locales.system()
+        return this
+    }
+
+    /**
+     * Get All information related to locales.
+     *
+     * Example output for API 34:
+     * ```
+     * {
+     *   "info-locales": {
+     *     "configuration": {
+     *       "locale": "es_ES",
+     *       "locales": "[es_ES,en_US]",
+     *       "grammaticalGender": "0 (not specified)"
+     *     },
+     *     "localeManager": {
+     *       "systemLocales": "[es_ES,en_US]",
+     *       "applicationLocales": "[]"
+     *     },
+     *     "grammaticalInflectionManager": {
+     *       "applicationGrammaticalGender": "0 (not specified)"
+     *     }
+     *   }
+     * }
+     * ```
+     * @return reference to [Info] object
+     * @see [Configuration.getLocales]
+     * @see [Configuration.locale]
+     * @see [LocaleManager.getApplicationLocales]
+     * @see [LocaleManager.getSystemLocales]
+     * @see [Configuration.getGrammaticalGender]
+     * @see [GrammaticalInflectionManager.getApplicationGrammaticalGender]
+     */
+    fun locales(): Info {
+        locales.full()
         return this
     }
 
