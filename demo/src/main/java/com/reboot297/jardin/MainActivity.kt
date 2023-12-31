@@ -84,5 +84,92 @@ class MainActivity : AppCompatActivity() {
         },
         Item("Locales System") { Info(applicationContext).localesSystem().print() },
         Item("") { },
+
+        Item("Sensors Full") { Info(applicationContext).sensors().print() },
+        Item("Sensors Available") { Info(applicationContext).sensorsAvailable().print() },
+        Item("Sensors Dynamic") {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                Info(applicationContext).sensorsDynamic().print()
+            } else {
+                Toast.makeText(this, "Available since API 24", Toast.LENGTH_LONG).show()
+            }
+        },
+        Item("Sensors Accelerometer") { Info(applicationContext).sensorsAccelerometer().print() },
+        Item("Sensors Gravity") { Info(applicationContext).sensorsGravity().print() },
+        Item("Sensors Gyroscope") { Info(applicationContext).sensorsGyroscope().print() },
+        Item("Sensors Heading") {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                Info(applicationContext).sensorsHeading().print()
+            } else {
+                Toast.makeText(this, "Available since API 33", Toast.LENGTH_LONG).show()
+            }
+        },
+        Item("Sensors HeadTracker") {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                Info(applicationContext).sensorsHeadTracker().print()
+            } else {
+                Toast.makeText(this, "Available since API 33", Toast.LENGTH_LONG).show()
+            }
+        },
+        Item("Sensors Heart") { Info(applicationContext).sensorsHeart().print() },
+        Item("Sensors HingeAngle") {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                Info(applicationContext).sensorsHingeAngle().print()
+            } else {
+                Toast.makeText(this, "Available since API 30", Toast.LENGTH_LONG).show()
+            }
+        },
+        Item("Sensors Light") { Info(applicationContext).sensorsLight().print() },
+        Item("Sensors LinearAcceleration") {
+            Info(applicationContext).sensorsLinearAcceleration().print()
+        },
+
+        Item("Sensors LowLatencyOffBodyDetect") {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                Info(applicationContext).sensorsLowLatencyOffBodyDetect().print()
+            } else {
+                Toast.makeText(this, "Available since API 26", Toast.LENGTH_LONG).show()
+            }
+        },
+        Item("Sensors Magnetic Field") { Info(applicationContext).sensorsMagneticField().print() },
+
+        Item("Sensors MotionDetect") {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                Info(applicationContext).sensorsMotionDetect().print()
+            } else {
+                Toast.makeText(this, "Available since API 24", Toast.LENGTH_LONG).show()
+            }
+        },
+
+        Item("Sensors Orientation") { Info(applicationContext).sensorsOrientation().print() },
+
+        Item("Sensors POSE6DOF") {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                Info(applicationContext).sensorsPOSE6DOF().print()
+            } else {
+                Toast.makeText(this, "Available since API 24", Toast.LENGTH_LONG).show()
+            }
+        },
+
+        Item("Sensors Pressure") { Info(applicationContext).sensorsPressure().print() },
+        Item("Sensors Proximity") { Info(applicationContext).sensorsProximity().print() },
+        Item("Sensors Relative Humidity") {
+            Info(applicationContext).sensorsRelativeHumidity().print()
+        },
+        Item("Sensors RotationVector") { Info(applicationContext).sensorsRotationVector().print() },
+        Item("Sensors Significant motion") {
+            Info(applicationContext).sensorsSignificantMotion().print()
+        },
+
+        Item("Sensors StationaryDetect") {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                Info(applicationContext).sensorsStationaryDetect().print()
+            } else {
+                Toast.makeText(this, "Available since API 24", Toast.LENGTH_LONG).show()
+            }
+        },
+
+        Item("Sensors Steps") { Info(applicationContext).sensorsSteps().print() },
+        Item("Sensors Temperature") { Info(applicationContext).sensorsTemperature().print() },
     )
 }
