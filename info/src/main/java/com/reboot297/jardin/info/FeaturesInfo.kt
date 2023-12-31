@@ -16,173 +16,24 @@
 
 package com.reboot297.jardin.info
 
-import android.app.GrammaticalInflectionManager
-import android.app.LocaleManager
 import android.content.Context
-import android.content.Intent
 import android.content.pm.PackageManager
-import android.content.res.Configuration
-import android.os.BatteryManager
 import android.os.Build
-import android.util.Log
 import androidx.annotation.RequiresApi
 import org.json.JSONObject
 
-private const val TAG = "Info"
-
 /**
- * Get info about the application and device.
+ * Supported features info.
  */
-class Info(private val applicationContext: Context) {
+internal class FeaturesInfo internal constructor(
+    context: Context,
+    json: JSONObject,
+) : Base(context) {
 
-    private val json = JSONObject()
-
-    private val battery: BatteryInfo by lazy { BatteryInfo(applicationContext, json) }
-    private val features: FeaturesInfo by lazy { FeaturesInfo(applicationContext, json) }
-    private val locales: LocalesInfo by lazy { LocalesInfo(applicationContext, json) }
-
-    /**
-     * Get battery characteristics.
-     *
-     * Example output for API 34:
-     * ```
-     * {
-     *   "info-battery": {
-     *     "ACTION_BATTERY_CHANGED": {
-     *       "present": true,
-     *       "health": "2 (good)",
-     *       "technology": "Li-ion",
-     *       "temperature": "250 (25°C)",
-     *       "voltage": "5000 (5.0V)",
-     *       "cycleCount": 10
-     *     }
-     *   }
-     * }
-     *
-     * ```
-     * @return instance of [Info] object
-     * @see [Intent.ACTION_BATTERY_CHANGED]
-     * @see [BatteryManager.EXTRA_PRESENT]
-     * @see [BatteryManager.EXTRA_HEALTH]
-     * @see [BatteryManager.EXTRA_TECHNOLOGY]
-     * @see [BatteryManager.EXTRA_TEMPERATURE]
-     * @see [BatteryManager.EXTRA_VOLTAGE]
-     * @see [BatteryManager.EXTRA_CYCLE_COUNT]
-     */
-    fun batteryCharacteristics(): Info {
-        battery.characteristics()
-        return this
-    }
-
-    /**
-     * Get battery energy status.
-     *
-     * Example output for API 34:
-     * ```
-     * {
-     *   "info-battery": {
-     *     "batteryManager": {
-     *       "currentAverage": "900000 (microamperes, charging)",
-     *       "chargeCounter": "10000 (microampere-hours)",
-     *       "currentNow": "900000 (microamperes, charging)",
-     *       "energyCounter": "-9223372036854775808 (nanowatt-hours)"
-     *     }
-     *   }
-     * }
-     * ```
-     * @return instance of [Info] object
-     * @see [BatteryManager.BATTERY_PROPERTY_CURRENT_AVERAGE]
-     * @see [BatteryManager.BATTERY_PROPERTY_CHARGE_COUNTER]
-     * @see [BatteryManager.BATTERY_PROPERTY_CURRENT_NOW]
-     * @see [BatteryManager.BATTERY_PROPERTY_ENERGY_COUNTER]
-     */
-    fun batteryEnergy(): Info {
-        battery.energy()
-        return this
-    }
-
-    /**
-     * Get information related to the battery status.
-     *
-     * Example output for API 34:
-     * ```
-     * {
-     *   "info-battery": {
-     *     "batteryManager": {
-     *       "capacity": "100 %",
-     *       "isCharging": false,
-     *       "status": "4 (not charging)",
-     *       "computeChargeTimeRemaining": "-1 (computation fails)"
-     *     },
-     *     "ACTION_BATTERY_CHANGED": {
-     *       "plugged": "0 (not charging)",
-     *       "batteryLow": false,
-     *       "chargingStatus": 0
-     *     }
-     *   }
-     * }
-     * ```
-     * @return reference to [Info] object
-     * @see [BatteryManager.BATTERY_PROPERTY_CAPACITY]
-     * @see [BatteryManager.BATTERY_PROPERTY_STATUS]
-     * @see [BatteryManager.isCharging]
-     * @see [BatteryManager.computeChargeTimeRemaining]
-     * @see [Intent.ACTION_BATTERY_CHANGED]
-     * @see [BatteryManager.EXTRA_BATTERY_LOW]
-     * @see [BatteryManager.EXTRA_CHARGING_STATUS]
-     * @see [BatteryManager.EXTRA_PLUGGED]
-     */
-    fun batteryStatus(): Info {
-        battery.status()
-        return this
-    }
-
-    /**
-     * Get All information related to the battery.
-     *
-     * Example output for API 34:
-     * ```
-     * {
-     *   "info-battery": {
-     *     "ACTION_BATTERY_CHANGED": {
-     *       "present": true,
-     *       "health": "2 (good)",
-     *       "technology": "Li-ion",
-     *       "temperature": "250 (25°C)",
-     *       "voltage": "5000 (5.0V)",
-     *       "cycleCount": 10,
-     *       "plugged": "0 (not charging)",
-     *       "batteryLow": false,
-     *       "chargingStatus": 0
-     *     },
-     *     "batteryManager": {
-     *       "capacity": "100 %",
-     *       "isCharging": false,
-     *       "status": "4 (not charging)",
-     *       "computeChargeTimeRemaining": "-1 (computation fails)",
-     *       "currentAverage": "900000 (microamperes, charging)",
-     *       "chargeCounter": "10000 (microampere-hours)",
-     *       "currentNow": "900000 (microamperes, charging)",
-     *       "energyCounter": "-9223372036854775808 (nanowatt-hours)"
-     *     }
-     *   }
-     * }
-     * ```
-     * @return reference to [Info] object
-     * @see [BatteryManager.BATTERY_PROPERTY_CAPACITY]
-     * @see [BatteryManager.BATTERY_PROPERTY_STATUS]
-     * @see [BatteryManager.BATTERY_PROPERTY_CURRENT_AVERAGE]
-     * @see [BatteryManager.BATTERY_PROPERTY_CHARGE_COUNTER]
-     * @see [BatteryManager.BATTERY_PROPERTY_CURRENT_NOW]
-     * @see [BatteryManager.BATTERY_PROPERTY_ENERGY_COUNTER]
-     * @see [BatteryManager.isCharging]
-     * @see [BatteryManager.computeChargeTimeRemaining]
-     * @see [Intent.ACTION_BATTERY_CHANGED]
-     */
-    fun battery(): Info {
-        battery.full()
-        return this
-    }
+    private val root = json.getOrCreate("info-features")
+    private val packageManager = context.packageManager
+    private val featuresJson = root.getOrCreate("packageManager")
+        .getOrCreate("hasSystemFeature")
 
     /**
      * System audio features.
@@ -202,11 +53,11 @@ class Info(private val applicationContext: Context) {
      * }
      * ```
      * @see [PackageManager.hasSystemFeature]
-     * @return instance of [Info] object
      */
-    fun featuresAudio(): Info {
-        features.audio()
-        return this
+    internal fun audio() {
+        printFeature(PackageManager.FEATURE_AUDIO_LOW_LATENCY)
+        printFeature(PackageManager.FEATURE_AUDIO_OUTPUT)
+        printFeature(PackageManager.FEATURE_AUDIO_PRO)
     }
 
     /**
@@ -227,11 +78,13 @@ class Info(private val applicationContext: Context) {
      * }
      * ```
      * @see [PackageManager.hasSystemFeature]
-     * @return instance of [Info] object
      */
-    fun featuresBiometrics(): Info {
-        features.biometrics()
-        return this
+    internal fun biometrics() {
+        printFeature(PackageManager.FEATURE_FINGERPRINT)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            printFeature(PackageManager.FEATURE_FACE)
+            printFeature(PackageManager.FEATURE_IRIS)
+        }
     }
 
     /**
@@ -251,11 +104,10 @@ class Info(private val applicationContext: Context) {
      * }
      * ```
      * @see [PackageManager.hasSystemFeature]
-     * @return instance of [Info] object
      */
-    fun featuresBluetooth(): Info {
-        features.bluetooth()
-        return this
+    internal fun bluetooth() {
+        printFeature(PackageManager.FEATURE_BLUETOOTH)
+        printFeature(PackageManager.FEATURE_BLUETOOTH_LE)
     }
 
     /**
@@ -285,11 +137,24 @@ class Info(private val applicationContext: Context) {
      * }
      * ```
      * @see [PackageManager.hasSystemFeature]
-     * @return instance of [Info] object
      */
-    fun featuresCamera(): Info {
-        features.camera()
-        return this
+    internal fun camera() {
+        printFeature(PackageManager.FEATURE_CAMERA)
+        printFeature(PackageManager.FEATURE_CAMERA_ANY)
+        printFeature(PackageManager.FEATURE_CAMERA_AUTOFOCUS)
+        printFeature(PackageManager.FEATURE_CAMERA_CAPABILITY_MANUAL_POST_PROCESSING)
+        printFeature(PackageManager.FEATURE_CAMERA_CAPABILITY_MANUAL_SENSOR)
+        printFeature(PackageManager.FEATURE_CAMERA_CAPABILITY_RAW)
+        printFeature(PackageManager.FEATURE_CAMERA_EXTERNAL)
+        printFeature(PackageManager.FEATURE_CAMERA_FLASH)
+        printFeature(PackageManager.FEATURE_CAMERA_FRONT)
+        printFeature(PackageManager.FEATURE_CAMERA_LEVEL_FULL)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            printFeature(PackageManager.FEATURE_CAMERA_AR)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                printFeature(PackageManager.FEATURE_CAMERA_CONCURRENT)
+            }
+        }
     }
 
     /**
@@ -314,11 +179,20 @@ class Info(private val applicationContext: Context) {
      * }
      * ```
      * @see [PackageManager.hasSystemFeature]
-     * @return instance of [Info] object
      */
-    fun featuresDeviceType(): Info {
-        features.deviceType()
-        return this
+    internal fun deviceType() {
+        printFeature(PackageManager.FEATURE_AUTOMOTIVE)
+        @Suppress("DEPRECATION")
+        printFeature(PackageManager.FEATURE_TELEVISION)
+        printFeature(PackageManager.FEATURE_WATCH)
+        printFeature(PackageManager.FEATURE_LEANBACK)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            printFeature(PackageManager.FEATURE_LEANBACK_ONLY)
+            printFeature(PackageManager.FEATURE_EMBEDDED)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
+                printFeature(PackageManager.FEATURE_PC)
+            }
+        }
     }
 
     /**
@@ -342,11 +216,22 @@ class Info(private val applicationContext: Context) {
      * }
      * ```
      * @see [PackageManager.hasSystemFeature]
-     * @return instance of [Info] object
      */
-    fun featuresGraphics(): Info {
-        features.graphics()
-        return this
+    internal fun graphics() {
+        printFeature(PackageManager.FEATURE_OPENGLES_EXTENSION_PACK)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            printFeature(PackageManager.FEATURE_VULKAN_HARDWARE_LEVEL)
+            printFeature(PackageManager.FEATURE_VULKAN_HARDWARE_VERSION)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                printFeature(PackageManager.FEATURE_VULKAN_HARDWARE_COMPUTE)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                    printFeature(PackageManager.FEATURE_VULKAN_DEQP_LEVEL)
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                        printFeature(PackageManager.FEATURE_OPENGLES_DEQP_LEVEL)
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -367,11 +252,11 @@ class Info(private val applicationContext: Context) {
      * }
      * ```
      * @see [PackageManager.hasSystemFeature]
-     * @return instance of [Info] object
      */
-    fun featuresLocation(): Info {
-        features.location()
-        return this
+    internal fun location() {
+        printFeature(PackageManager.FEATURE_LOCATION)
+        printFeature(PackageManager.FEATURE_LOCATION_GPS)
+        printFeature(PackageManager.FEATURE_LOCATION_NETWORK)
     }
 
     /**
@@ -395,11 +280,18 @@ class Info(private val applicationContext: Context) {
      * }
      * ```
      * @see [PackageManager.hasSystemFeature]
-     * @return instance of [Info] object
      */
-    fun featuresNFC(): Info {
-        features.nfc()
-        return this
+    internal fun nfc() {
+        printFeature(PackageManager.FEATURE_NFC)
+        printFeature(PackageManager.FEATURE_NFC_HOST_CARD_EMULATION)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            printFeature(PackageManager.FEATURE_NFC_HOST_CARD_EMULATION_NFCF)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                printFeature(PackageManager.FEATURE_NFC_BEAM)
+                printFeature(PackageManager.FEATURE_NFC_OFF_HOST_CARD_EMULATION_ESE)
+                printFeature(PackageManager.FEATURE_NFC_OFF_HOST_CARD_EMULATION_UICC)
+            }
+        }
     }
 
     /**
@@ -436,11 +328,31 @@ class Info(private val applicationContext: Context) {
      * }
      * ```
      * @see [PackageManager.hasSystemFeature]
-     * @return instance of [Info] object
      */
-    fun featuresSensors(): Info {
-        features.sensors()
-        return this
+    internal fun sensors() {
+        printFeature(PackageManager.FEATURE_SENSOR_ACCELEROMETER)
+        printFeature(PackageManager.FEATURE_SENSOR_AMBIENT_TEMPERATURE)
+        printFeature(PackageManager.FEATURE_SENSOR_BAROMETER)
+        printFeature(PackageManager.FEATURE_SENSOR_COMPASS)
+        printFeature(PackageManager.FEATURE_SENSOR_GYROSCOPE)
+        printFeature(PackageManager.FEATURE_SENSOR_HEART_RATE)
+        printFeature(PackageManager.FEATURE_SENSOR_HEART_RATE_ECG)
+        printFeature(PackageManager.FEATURE_SENSOR_LIGHT)
+        printFeature(PackageManager.FEATURE_SENSOR_PROXIMITY)
+        printFeature(PackageManager.FEATURE_SENSOR_RELATIVE_HUMIDITY)
+        printFeature(PackageManager.FEATURE_SENSOR_STEP_COUNTER)
+        printFeature(PackageManager.FEATURE_SENSOR_STEP_DETECTOR)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            printFeature(PackageManager.FEATURE_SENSOR_HINGE_ANGLE)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                printFeature(PackageManager.FEATURE_SENSOR_ACCELEROMETER_LIMITED_AXES)
+                printFeature(PackageManager.FEATURE_SENSOR_ACCELEROMETER_LIMITED_AXES_UNCALIBRATED)
+                printFeature(PackageManager.FEATURE_SENSOR_DYNAMIC_HEAD_TRACKER)
+                printFeature(PackageManager.FEATURE_SENSOR_GYROSCOPE_LIMITED_AXES)
+                printFeature(PackageManager.FEATURE_SENSOR_GYROSCOPE_LIMITED_AXES_UNCALIBRATED)
+                printFeature(PackageManager.FEATURE_SENSOR_HEADING)
+            }
+        }
     }
 
     /**
@@ -470,11 +382,26 @@ class Info(private val applicationContext: Context) {
      * }
      * ```
      * @see [PackageManager.hasSystemFeature]
-     * @return instance of [Info] object
      */
-    fun featuresTelephony(): Info {
-        features.telephony()
-        return this
+    internal fun telephony() {
+        printFeature(PackageManager.FEATURE_TELEPHONY)
+        printFeature(PackageManager.FEATURE_TELEPHONY_CDMA)
+        printFeature(PackageManager.FEATURE_TELEPHONY_GSM)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            printFeature(PackageManager.FEATURE_TELEPHONY_EUICC)
+            printFeature(PackageManager.FEATURE_TELEPHONY_MBMS)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                printFeature(PackageManager.FEATURE_TELEPHONY_IMS)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    printFeature(PackageManager.FEATURE_TELEPHONY_CALLING)
+                    printFeature(PackageManager.FEATURE_TELEPHONY_DATA)
+                    printFeature(PackageManager.FEATURE_TELEPHONY_EUICC_MEP)
+                    printFeature(PackageManager.FEATURE_TELEPHONY_MESSAGING)
+                    printFeature(PackageManager.FEATURE_TELEPHONY_RADIO_ACCESS)
+                    printFeature(PackageManager.FEATURE_TELEPHONY_SUBSCRIPTION)
+                }
+            }
+        }
     }
 
     /**
@@ -499,15 +426,19 @@ class Info(private val applicationContext: Context) {
      * }
      * ```
      * @see [PackageManager.hasSystemFeature]
-     * @return instance of [Info] object
      */
-    fun featuresTouch(): Info {
-        features.touch()
-        return this
+    internal fun touch() {
+        printFeature(PackageManager.FEATURE_FAKETOUCH)
+        printFeature(PackageManager.FEATURE_FAKETOUCH_MULTITOUCH_DISTINCT)
+        printFeature(PackageManager.FEATURE_FAKETOUCH_MULTITOUCH_JAZZHAND)
+        printFeature(PackageManager.FEATURE_TOUCHSCREEN)
+        printFeature(PackageManager.FEATURE_TOUCHSCREEN_MULTITOUCH)
+        printFeature(PackageManager.FEATURE_TOUCHSCREEN_MULTITOUCH_DISTINCT)
+        printFeature(PackageManager.FEATURE_TOUCHSCREEN_MULTITOUCH_JAZZHAND)
     }
 
     /**
-     * Features related to VR
+     * Features related to VR.
      *
      * Example output:
      * ```
@@ -524,12 +455,15 @@ class Info(private val applicationContext: Context) {
      * }
      * ```
      * @see [PackageManager.hasSystemFeature]
-     * @return instance of [Info] object
      */
     @RequiresApi(Build.VERSION_CODES.N)
-    fun featuresVR(): Info {
-        features.vr()
-        return this
+    internal fun vr() {
+        @Suppress("DEPRECATION")
+        printFeature(PackageManager.FEATURE_VR_MODE)
+        printFeature(PackageManager.FEATURE_VR_MODE_HIGH_PERFORMANCE)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            printFeature(PackageManager.FEATURE_VR_HEADTRACKING)
+        }
     }
 
     /**
@@ -552,11 +486,19 @@ class Info(private val applicationContext: Context) {
      * }
      * ```
      * @see [PackageManager.hasSystemFeature]
-     * @return instance of [Info] object
      */
-    fun featuresWifi(): Info {
-        features.wifi()
-        return this
+    internal fun wifi() {
+        printFeature(PackageManager.FEATURE_WIFI)
+        printFeature(PackageManager.FEATURE_WIFI_DIRECT)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            printFeature(PackageManager.FEATURE_WIFI_AWARE)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
+                printFeature(PackageManager.FEATURE_WIFI_PASSPOINT)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                    printFeature(PackageManager.FEATURE_WIFI_RTT)
+                }
+            }
+        }
     }
 
     /**
@@ -717,145 +659,101 @@ class Info(private val applicationContext: Context) {
      * }
      * ```
      * @see [PackageManager.hasSystemFeature]
-     * @return instance of [Info] object
      */
-    fun features(): Info {
-        features.full()
-        return this
-    }
+    internal fun full() {
+        audio()
+        biometrics()
+        bluetooth()
+        camera()
+        graphics()
+        deviceType()
+        location()
+        nfc()
+        sensors()
+        telephony()
+        touch()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            vr()
+        }
+        wifi()
 
-    /**
-     * List of locales available in the application.
-     *
-     * Example output:
-     * ```
-     * {
-     *   "info-locales": {
-     *     "localeManager": {
-     *       "applicationLocales": "[es_ES]"
-     *     }
-     *   }
-     * }
-     * ```
-     * @return reference to [Info] object
-     * @see [LocaleManager.getApplicationLocales]
-     * @return instance of [Info] object
-     */
-    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
-    fun localesApplication(): Info {
-        locales.application()
-        return this
-    }
-
-    /**
-     * Grammatical gender.
-     *
-     * Example output:
-     * ```
-     * {
-     *   "info-locales": {
-     *     "grammaticalInflectionManager": {
-     *       "applicationGrammaticalGender": "0 (not specified)"
-     *     },
-     *     "configuration": {
-     *       "grammaticalGender": "0 (not specified)"
-     *     }
-     *   }
-     * }
-     * ```
-     * @return reference to [Info] object
-     * @see [Configuration.getGrammaticalGender]
-     * @see [GrammaticalInflectionManager.getApplicationGrammaticalGender]
-     */
-    @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
-    fun localesGrammaticalGender(): Info {
-        locales.grammaticalGender()
-        return this
-    }
-
-    /**
-     * System locals.
-     *
-     * Example output:
-     * ```
-     * {
-     *   "info-locales": {
-     *     "configuration": {
-     *       "locale": "es_ES",
-     *       "locales": "[es_ES,en_US]"
-     *     },
-     *     "localeManager": {
-     *       "systemLocales": "[es_ES,en_US]"
-     *     }
-     *   }
-     * }
-     * ```
-     * @return reference to [Info] object
-     * @see [Configuration.getLocales]
-     * @see [Configuration.locale]
-     * @see [LocaleManager.getSystemLocales]
-     */
-    fun localesSystem(): Info {
-        locales.system()
-        return this
-    }
-
-    /**
-     * Get All information related to locales.
-     *
-     * Example output for API 34:
-     * ```
-     * {
-     *   "info-locales": {
-     *     "configuration": {
-     *       "locale": "es_ES",
-     *       "locales": "[es_ES,en_US]",
-     *       "grammaticalGender": "0 (not specified)"
-     *     },
-     *     "localeManager": {
-     *       "systemLocales": "[es_ES,en_US]",
-     *       "applicationLocales": "[]"
-     *     },
-     *     "grammaticalInflectionManager": {
-     *       "applicationGrammaticalGender": "0 (not specified)"
-     *     }
-     *   }
-     * }
-     * ```
-     * @return reference to [Info] object
-     * @see [Configuration.getLocales]
-     * @see [Configuration.locale]
-     * @see [LocaleManager.getApplicationLocales]
-     * @see [LocaleManager.getSystemLocales]
-     * @see [Configuration.getGrammaticalGender]
-     * @see [GrammaticalInflectionManager.getApplicationGrammaticalGender]
-     */
-    fun locales(): Info {
-        locales.full()
-        return this
-    }
-
-    /**
-     * Get info as Json string.
-     *
-     * @param prettyPrint true if use pretty print.
-     * @return string
-     */
-    fun getText(prettyPrint: Boolean = false): String {
-        return if (prettyPrint) {
-            json.toString(2)
-        } else {
-            json.toString()
+        printFeature(PackageManager.FEATURE_APP_WIDGETS)
+        printFeature(PackageManager.FEATURE_BACKUP)
+        @Suppress("DEPRECATION")
+        printFeature(PackageManager.FEATURE_CONNECTION_SERVICE)
+        printFeature(PackageManager.FEATURE_CONSUMER_IR)
+        printFeature(PackageManager.FEATURE_DEVICE_ADMIN)
+        printFeature(PackageManager.FEATURE_GAMEPAD)
+        printFeature(PackageManager.FEATURE_HIFI_SENSORS)
+        printFeature(PackageManager.FEATURE_HOME_SCREEN)
+        printFeature(PackageManager.FEATURE_INPUT_METHODS)
+        printFeature(PackageManager.FEATURE_LIVE_TV)
+        printFeature(PackageManager.FEATURE_LIVE_WALLPAPER)
+        printFeature(PackageManager.FEATURE_MANAGED_USERS)
+        printFeature(PackageManager.FEATURE_MICROPHONE)
+        printFeature(PackageManager.FEATURE_MIDI)
+        printFeature(PackageManager.FEATURE_PRINTING)
+        printFeature(PackageManager.FEATURE_SCREEN_LANDSCAPE)
+        printFeature(PackageManager.FEATURE_SCREEN_PORTRAIT)
+        printFeature(PackageManager.FEATURE_SECURELY_REMOVES_USERS)
+        printFeature(PackageManager.FEATURE_SIP)
+        printFeature(PackageManager.FEATURE_SIP_VOIP)
+        printFeature(PackageManager.FEATURE_USB_ACCESSORY)
+        printFeature(PackageManager.FEATURE_USB_HOST)
+        printFeature(PackageManager.FEATURE_VERIFIED_BOOT)
+        printFeature(PackageManager.FEATURE_WEBVIEW)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            printFeature(PackageManager.FEATURE_ETHERNET)
+            printFeature(PackageManager.FEATURE_FREEFORM_WINDOW_MANAGEMENT)
+            printFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                printFeature(PackageManager.FEATURE_ACTIVITIES_ON_SECONDARY_DISPLAYS)
+                printFeature(PackageManager.FEATURE_AUTOFILL)
+                printFeature(PackageManager.FEATURE_COMPANION_DEVICE_SETUP)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
+                    printFeature(PackageManager.FEATURE_RAM_LOW)
+                    printFeature(PackageManager.FEATURE_RAM_NORMAL)
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                        printFeature(PackageManager.FEATURE_CANT_SAVE_STATE)
+                        printFeature(PackageManager.FEATURE_STRONGBOX_KEYSTORE)
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                            printFeature(PackageManager.FEATURE_IPSEC_TUNNELS)
+                            printFeature(PackageManager.FEATURE_SECURE_LOCK_SCREEN)
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                                printFeature(PackageManager.FEATURE_CONTROLS)
+                                printFeature(PackageManager.FEATURE_SE_OMAPI_ESE)
+                                printFeature(PackageManager.FEATURE_SE_OMAPI_SD)
+                                printFeature(PackageManager.FEATURE_SE_OMAPI_UICC)
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                                    printFeature(PackageManager.FEATURE_HARDWARE_KEYSTORE)
+                                    printFeature(PackageManager.FEATURE_IDENTITY_CREDENTIAL_HARDWARE)
+                                    printFeature(PackageManager.FEATURE_IDENTITY_CREDENTIAL_HARDWARE_DIRECT_ACCESS)
+                                    printFeature(PackageManager.FEATURE_KEYSTORE_APP_ATTEST_KEY)
+                                    printFeature(PackageManager.FEATURE_KEYSTORE_LIMITED_USE_KEY)
+                                    printFeature(PackageManager.FEATURE_KEYSTORE_SINGLE_USE_KEY)
+                                    printFeature(PackageManager.FEATURE_SECURITY_MODEL_COMPATIBLE)
+                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                                        printFeature(PackageManager.FEATURE_EXPANDED_PICTURE_IN_PICTURE)
+                                        printFeature(PackageManager.FEATURE_WINDOW_MAGNIFICATION)
+                                        printFeature(PackageManager.FEATURE_TELECOM)
+                                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                                            printFeature(PackageManager.FEATURE_CREDENTIALS)
+                                            printFeature(PackageManager.FEATURE_DEVICE_LOCK)
+                                            printFeature(PackageManager.FEATURE_IPSEC_TUNNEL_MIGRATION)
+                                            printFeature(PackageManager.FEATURE_UWB)
+                                            printFeature(PackageManager.FEATURE_WALLET_LOCATION_BASED_SUGGESTIONS)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 
-    /**
-     * Print info in logcat.
-     *
-     * @param tag custom tag fpr the log
-     * @param prettyPrint true if use pretty print.
-     */
-    fun print(tag: String = TAG, prettyPrint: Boolean = true) {
-        Log.i(tag, getText(prettyPrint))
+    private fun printFeature(feature: String) {
+        featuresJson.put(feature, packageManager.hasSystemFeature(feature))
     }
 }
