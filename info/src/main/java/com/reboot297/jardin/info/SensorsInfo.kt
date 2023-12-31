@@ -16,826 +16,72 @@
 
 package com.reboot297.jardin.info
 
-import android.app.GrammaticalInflectionManager
-import android.app.LocaleManager
 import android.content.Context
-import android.content.Intent
 import android.content.pm.PackageManager
-import android.content.res.Configuration
 import android.hardware.Sensor
+import android.hardware.Sensor.REPORTING_MODE_CONTINUOUS
+import android.hardware.Sensor.REPORTING_MODE_ONE_SHOT
+import android.hardware.Sensor.REPORTING_MODE_ON_CHANGE
+import android.hardware.Sensor.REPORTING_MODE_SPECIAL_TRIGGER
+import android.hardware.Sensor.TYPE_ACCELEROMETER
+import android.hardware.Sensor.TYPE_ACCELEROMETER_LIMITED_AXES
+import android.hardware.Sensor.TYPE_ACCELEROMETER_LIMITED_AXES_UNCALIBRATED
+import android.hardware.Sensor.TYPE_ACCELEROMETER_UNCALIBRATED
+import android.hardware.Sensor.TYPE_ALL
+import android.hardware.Sensor.TYPE_AMBIENT_TEMPERATURE
+import android.hardware.Sensor.TYPE_GAME_ROTATION_VECTOR
+import android.hardware.Sensor.TYPE_GEOMAGNETIC_ROTATION_VECTOR
+import android.hardware.Sensor.TYPE_GRAVITY
+import android.hardware.Sensor.TYPE_GYROSCOPE
+import android.hardware.Sensor.TYPE_GYROSCOPE_LIMITED_AXES
+import android.hardware.Sensor.TYPE_GYROSCOPE_LIMITED_AXES_UNCALIBRATED
+import android.hardware.Sensor.TYPE_GYROSCOPE_UNCALIBRATED
+import android.hardware.Sensor.TYPE_HEADING
+import android.hardware.Sensor.TYPE_HEAD_TRACKER
+import android.hardware.Sensor.TYPE_HEART_BEAT
+import android.hardware.Sensor.TYPE_HEART_RATE
+import android.hardware.Sensor.TYPE_HINGE_ANGLE
+import android.hardware.Sensor.TYPE_LIGHT
+import android.hardware.Sensor.TYPE_LINEAR_ACCELERATION
+import android.hardware.Sensor.TYPE_LOW_LATENCY_OFFBODY_DETECT
+import android.hardware.Sensor.TYPE_MAGNETIC_FIELD
+import android.hardware.Sensor.TYPE_MAGNETIC_FIELD_UNCALIBRATED
+import android.hardware.Sensor.TYPE_MOTION_DETECT
+import android.hardware.Sensor.TYPE_ORIENTATION
+import android.hardware.Sensor.TYPE_POSE_6DOF
+import android.hardware.Sensor.TYPE_PRESSURE
+import android.hardware.Sensor.TYPE_PROXIMITY
+import android.hardware.Sensor.TYPE_RELATIVE_HUMIDITY
+import android.hardware.Sensor.TYPE_ROTATION_VECTOR
+import android.hardware.Sensor.TYPE_SIGNIFICANT_MOTION
+import android.hardware.Sensor.TYPE_STATIONARY_DETECT
+import android.hardware.Sensor.TYPE_STEP_COUNTER
+import android.hardware.Sensor.TYPE_STEP_DETECTOR
+import android.hardware.Sensor.TYPE_TEMPERATURE
+import android.hardware.SensorDirectChannel.RATE_FAST
+import android.hardware.SensorDirectChannel.RATE_NORMAL
+import android.hardware.SensorDirectChannel.RATE_STOP
+import android.hardware.SensorDirectChannel.RATE_VERY_FAST
 import android.hardware.SensorManager
-import android.os.BatteryManager
 import android.os.Build
-import android.util.Log
 import androidx.annotation.RequiresApi
 import org.json.JSONObject
 
-private const val TAG = "Info"
-
 /**
- * Get info about the application and device.
+ * Sensors info.
  */
-class Info(private val applicationContext: Context) {
+internal class SensorsInfo internal constructor(
+    context: Context,
+    json: JSONObject,
+) : Base(context) {
 
-    private val json = JSONObject()
-
-    private val battery: BatteryInfo by lazy { BatteryInfo(applicationContext, json) }
-    private val features: FeaturesInfo by lazy { FeaturesInfo(applicationContext, json) }
-    private val locales: LocalesInfo by lazy { LocalesInfo(applicationContext, json) }
-    private val sensors: SensorsInfo by lazy { SensorsInfo(applicationContext, json) }
-
-    /**
-     * Get battery characteristics.
-     *
-     * Example output for API 34:
-     * ```
-     * {
-     *   "info-battery": {
-     *     "ACTION_BATTERY_CHANGED": {
-     *       "present": true,
-     *       "health": "2 (good)",
-     *       "technology": "Li-ion",
-     *       "temperature": "250 (25°C)",
-     *       "voltage": "5000 (5.0V)",
-     *       "cycleCount": 10
-     *     }
-     *   }
-     * }
-     *
-     * ```
-     * @return instance of [Info] object
-     * @see [Intent.ACTION_BATTERY_CHANGED]
-     * @see [BatteryManager.EXTRA_PRESENT]
-     * @see [BatteryManager.EXTRA_HEALTH]
-     * @see [BatteryManager.EXTRA_TECHNOLOGY]
-     * @see [BatteryManager.EXTRA_TEMPERATURE]
-     * @see [BatteryManager.EXTRA_VOLTAGE]
-     * @see [BatteryManager.EXTRA_CYCLE_COUNT]
-     */
-    fun batteryCharacteristics(): Info {
-        battery.characteristics()
-        return this
-    }
-
-    /**
-     * Get battery energy status.
-     *
-     * Example output for API 34:
-     * ```
-     * {
-     *   "info-battery": {
-     *     "batteryManager": {
-     *       "currentAverage": "900000 (microamperes, charging)",
-     *       "chargeCounter": "10000 (microampere-hours)",
-     *       "currentNow": "900000 (microamperes, charging)",
-     *       "energyCounter": "-9223372036854775808 (nanowatt-hours)"
-     *     }
-     *   }
-     * }
-     * ```
-     * @return instance of [Info] object
-     * @see [BatteryManager.BATTERY_PROPERTY_CURRENT_AVERAGE]
-     * @see [BatteryManager.BATTERY_PROPERTY_CHARGE_COUNTER]
-     * @see [BatteryManager.BATTERY_PROPERTY_CURRENT_NOW]
-     * @see [BatteryManager.BATTERY_PROPERTY_ENERGY_COUNTER]
-     */
-    fun batteryEnergy(): Info {
-        battery.energy()
-        return this
-    }
-
-    /**
-     * Get information related to the battery status.
-     *
-     * Example output for API 34:
-     * ```
-     * {
-     *   "info-battery": {
-     *     "batteryManager": {
-     *       "capacity": "100 %",
-     *       "isCharging": false,
-     *       "status": "4 (not charging)",
-     *       "computeChargeTimeRemaining": "-1 (computation fails)"
-     *     },
-     *     "ACTION_BATTERY_CHANGED": {
-     *       "plugged": "0 (not charging)",
-     *       "batteryLow": false,
-     *       "chargingStatus": 0
-     *     }
-     *   }
-     * }
-     * ```
-     * @return reference to [Info] object
-     * @see [BatteryManager.BATTERY_PROPERTY_CAPACITY]
-     * @see [BatteryManager.BATTERY_PROPERTY_STATUS]
-     * @see [BatteryManager.isCharging]
-     * @see [BatteryManager.computeChargeTimeRemaining]
-     * @see [Intent.ACTION_BATTERY_CHANGED]
-     * @see [BatteryManager.EXTRA_BATTERY_LOW]
-     * @see [BatteryManager.EXTRA_CHARGING_STATUS]
-     * @see [BatteryManager.EXTRA_PLUGGED]
-     */
-    fun batteryStatus(): Info {
-        battery.status()
-        return this
-    }
-
-    /**
-     * Get All information related to the battery.
-     *
-     * Example output for API 34:
-     * ```
-     * {
-     *   "info-battery": {
-     *     "ACTION_BATTERY_CHANGED": {
-     *       "present": true,
-     *       "health": "2 (good)",
-     *       "technology": "Li-ion",
-     *       "temperature": "250 (25°C)",
-     *       "voltage": "5000 (5.0V)",
-     *       "cycleCount": 10,
-     *       "plugged": "0 (not charging)",
-     *       "batteryLow": false,
-     *       "chargingStatus": 0
-     *     },
-     *     "batteryManager": {
-     *       "capacity": "100 %",
-     *       "isCharging": false,
-     *       "status": "4 (not charging)",
-     *       "computeChargeTimeRemaining": "-1 (computation fails)",
-     *       "currentAverage": "900000 (microamperes, charging)",
-     *       "chargeCounter": "10000 (microampere-hours)",
-     *       "currentNow": "900000 (microamperes, charging)",
-     *       "energyCounter": "-9223372036854775808 (nanowatt-hours)"
-     *     }
-     *   }
-     * }
-     * ```
-     * @return reference to [Info] object
-     * @see [BatteryManager.BATTERY_PROPERTY_CAPACITY]
-     * @see [BatteryManager.BATTERY_PROPERTY_STATUS]
-     * @see [BatteryManager.BATTERY_PROPERTY_CURRENT_AVERAGE]
-     * @see [BatteryManager.BATTERY_PROPERTY_CHARGE_COUNTER]
-     * @see [BatteryManager.BATTERY_PROPERTY_CURRENT_NOW]
-     * @see [BatteryManager.BATTERY_PROPERTY_ENERGY_COUNTER]
-     * @see [BatteryManager.isCharging]
-     * @see [BatteryManager.computeChargeTimeRemaining]
-     * @see [Intent.ACTION_BATTERY_CHANGED]
-     */
-    fun battery(): Info {
-        battery.full()
-        return this
-    }
-
-    /**
-     * System audio features.
-     *
-     * Example output:
-     * ```
-     * {
-     *   "info-features": {
-     *     "packageManager": {
-     *       "hasSystemFeature": {
-     *         "android.hardware.audio.low_latency": false,
-     *         "android.hardware.audio.output": true,
-     *         "android.hardware.audio.pro": false
-     *       }
-     *     }
-     *   }
-     * }
-     * ```
-     * @see [PackageManager.hasSystemFeature]
-     * @return instance of [Info] object
-     */
-    fun featuresAudio(): Info {
-        features.audio()
-        return this
-    }
-
-    /**
-     * Features related to biometrics.
-     *
-     * Example output:
-     * ```
-     * {
-     *   "info-features": {
-     *     "packageManager": {
-     *       "hasSystemFeature": {
-     *         "android.hardware.fingerprint": true,
-     *         "android.hardware.biometrics.face": true,
-     *         "android.hardware.biometrics.iris": false
-     *       }
-     *     }
-     *   }
-     * }
-     * ```
-     * @see [PackageManager.hasSystemFeature]
-     * @return instance of [Info] object
-     */
-    fun featuresBiometrics(): Info {
-        features.biometrics()
-        return this
-    }
-
-    /**
-     * Features related to bluetooth.
-     *
-     * Example output:
-     * ```
-     * {
-     *   "info-features": {
-     *     "packageManager": {
-     *       "hasSystemFeature": {
-     *         "android.hardware.bluetooth": true,
-     *         "android.hardware.bluetooth_le": true
-     *       }
-     *     }
-     *   }
-     * }
-     * ```
-     * @see [PackageManager.hasSystemFeature]
-     * @return instance of [Info] object
-     */
-    fun featuresBluetooth(): Info {
-        features.bluetooth()
-        return this
-    }
-
-    /**
-     * Features related to the camera.
-     *
-     * Example output:
-     * ```
-     * {
-     *   "info-features": {
-     *     "packageManager": {
-     *       "hasSystemFeature": {
-     *         "android.hardware.camera": true,
-     *         "android.hardware.camera.any": true,
-     *         "android.hardware.camera.autofocus": true,
-     *         "android.hardware.camera.capability.manual_post_processing": true,
-     *         "android.hardware.camera.capability.manual_sensor": true,
-     *         "android.hardware.camera.capability.raw": true,
-     *         "android.hardware.camera.external": false,
-     *         "android.hardware.camera.flash": true,
-     *         "android.hardware.camera.front": true,
-     *         "android.hardware.camera.level.full": true,
-     *         "android.hardware.camera.ar": false,
-     *         "android.hardware.camera.concurrent": true
-     *       }
-     *     }
-     *   }
-     * }
-     * ```
-     * @see [PackageManager.hasSystemFeature]
-     * @return instance of [Info] object
-     */
-    fun featuresCamera(): Info {
-        features.camera()
-        return this
-    }
-
-    /**
-     * Features related to device type.
-     *
-     * Example output:
-     * ```
-     * {
-     *   "info-features": {
-     *     "packageManager": {
-     *       "hasSystemFeature": {
-     *         "android.hardware.type.automotive": false,
-     *         "android.hardware.type.television": false,
-     *         "android.hardware.type.watch": false,
-     *         "android.software.leanback": false,
-     *         "android.software.leanback_only": false,
-     *         "android.hardware.type.embedded": false,
-     *         "android.hardware.type.pc": false
-     *       }
-     *     }
-     *   }
-     * }
-     * ```
-     * @see [PackageManager.hasSystemFeature]
-     * @return instance of [Info] object
-     */
-    fun featuresDeviceType(): Info {
-        features.deviceType()
-        return this
-    }
-
-    /**
-     * Features related to openGL, Vulkan.
-     *
-     * Example output:
-     * ```
-     * {
-     *   "info-features": {
-     *     "packageManager": {
-     *       "hasSystemFeature": {
-     *         "android.hardware.opengles.aep": false,
-     *         "android.hardware.vulkan.level": true,
-     *         "android.hardware.vulkan.version": true,
-     *         "android.hardware.vulkan.compute": true,
-     *         "android.software.vulkan.deqp.level": true,
-     *         "android.software.opengles.deqp.level": true
-     *       }
-     *     }
-     *   }
-     * }
-     * ```
-     * @see [PackageManager.hasSystemFeature]
-     * @return instance of [Info] object
-     */
-    fun featuresGraphics(): Info {
-        features.graphics()
-        return this
-    }
-
-    /**
-     * Features related to the location.
-     *
-     * Example output:
-     * ```
-     * {
-     *   "info-features": {
-     *     "packageManager": {
-     *       "hasSystemFeature": {
-     *         "android.hardware.location": true,
-     *         "android.hardware.location.gps": true,
-     *         "android.hardware.location.network": true
-     *       }
-     *     }
-     *   }
-     * }
-     * ```
-     * @see [PackageManager.hasSystemFeature]
-     * @return instance of [Info] object
-     */
-    fun featuresLocation(): Info {
-        features.location()
-        return this
-    }
-
-    /**
-     * Features related to the NFC.
-     *
-     * Example output:
-     * ```
-     * {
-     *   "info-features": {
-     *     "packageManager": {
-     *       "hasSystemFeature": {
-     *         "android.hardware.nfc": false,
-     *         "android.hardware.nfc.hce": false,
-     *         "android.hardware.nfc.hcef": false,
-     *         "android.sofware.nfc.beam": false,
-     *         "android.hardware.nfc.ese": false,
-     *         "android.hardware.nfc.uicc": false
-     *       }
-     *     }
-     *   }
-     * }
-     * ```
-     * @see [PackageManager.hasSystemFeature]
-     * @return instance of [Info] object
-     */
-    fun featuresNFC(): Info {
-        features.nfc()
-        return this
-    }
-
-    /**
-     * Features related to the sensors.
-     *
-     * Example output:
-     * ```
-     * {
-     *   "info-features": {
-     *     "packageManager": {
-     *       "hasSystemFeature": {
-     *         "android.hardware.sensor.accelerometer": true,
-     *         "android.hardware.sensor.ambient_temperature": true,
-     *         "android.hardware.sensor.barometer": true,
-     *         "android.hardware.sensor.compass": true,
-     *         "android.hardware.sensor.gyroscope": true,
-     *         "android.hardware.sensor.heartrate": false,
-     *         "android.hardware.sensor.heartrate.ecg": false,
-     *         "android.hardware.sensor.light": true,
-     *         "android.hardware.sensor.proximity": true,
-     *         "android.hardware.sensor.relative_humidity": true,
-     *         "android.hardware.sensor.stepcounter": false,
-     *         "android.hardware.sensor.stepdetector": false,
-     *         "android.hardware.sensor.hinge_angle": true,
-     *         "android.hardware.sensor.accelerometer_limited_axes": false,
-     *         "android.hardware.sensor.accelerometer_limited_axes_uncalibrated": false,
-     *         "android.hardware.sensor.dynamic.head_tracker": false,
-     *         "android.hardware.sensor.gyroscope_limited_axes": false,
-     *         "android.hardware.sensor.gyroscope_limited_axes_uncalibrated": false,
-     *         "android.hardware.sensor.heading": false
-     *       }
-     *     }
-     *   }
-     * }
-     * ```
-     * @see [PackageManager.hasSystemFeature]
-     * @return instance of [Info] object
-     */
-    fun featuresSensors(): Info {
-        features.sensors()
-        return this
-    }
-
-    /**
-     * Features related to telephony.
-     *
-     * Example output:
-     * ```
-     * {
-     *   "info-features": {
-     *     "packageManager": {
-     *       "hasSystemFeature": {
-     *         "android.hardware.telephony": true,
-     *         "android.hardware.telephony.cdma": false,
-     *         "android.hardware.telephony.gsm": true,
-     *         "android.hardware.telephony.euicc": false,
-     *         "android.hardware.telephony.mbms": false,
-     *         "android.hardware.telephony.ims": true,
-     *         "android.hardware.telephony.calling": true,
-     *         "android.hardware.telephony.data": true,
-     *         "android.hardware.telephony.euicc.mep": false,
-     *         "android.hardware.telephony.messaging": false,
-     *         "android.hardware.telephony.radio.access": true,
-     *         "android.hardware.telephony.subscription": true
-     *       }
-     *     }
-     *   }
-     * }
-     * ```
-     * @see [PackageManager.hasSystemFeature]
-     * @return instance of [Info] object
-     */
-    fun featuresTelephony(): Info {
-        features.telephony()
-        return this
-    }
-
-    /**
-     * Features related to touch and faketouch.
-     *
-     * Example output:
-     * ```
-     * {
-     *   "info-features": {
-     *     "packageManager": {
-     *       "hasSystemFeature": {
-     *         "android.hardware.faketouch": true,
-     *         "android.hardware.faketouch.multitouch.distinct": false,
-     *         "android.hardware.faketouch.multitouch.jazzhand": false,
-     *         "android.hardware.touchscreen": true,
-     *         "android.hardware.touchscreen.multitouch": true,
-     *         "android.hardware.touchscreen.multitouch.distinct": true,
-     *         "android.hardware.touchscreen.multitouch.jazzhand": true
-     *       }
-     *     }
-     *   }
-     * }
-     * ```
-     * @see [PackageManager.hasSystemFeature]
-     * @return instance of [Info] object
-     */
-    fun featuresTouch(): Info {
-        features.touch()
-        return this
-    }
-
-    /**
-     * Features related to VR
-     *
-     * Example output:
-     * ```
-     * {
-     *   "info-features": {
-     *     "packageManager": {
-     *       "hasSystemFeature": {
-     *         "android.software.vr.mode": false,
-     *         "android.hardware.vr.high_performance": false,
-     *         "android.hardware.vr.headtracking": false
-     *       }
-     *     }
-     *   }
-     * }
-     * ```
-     * @see [PackageManager.hasSystemFeature]
-     * @return instance of [Info] object
-     */
-    @RequiresApi(Build.VERSION_CODES.N)
-    fun featuresVR(): Info {
-        features.vr()
-        return this
-    }
-
-    /**
-     * Features related to WiIFI.
-     *
-     * Example output:
-     * ```
-     * {
-     *   "info-features": {
-     *     "packageManager": {
-     *       "hasSystemFeature": {
-     *         "android.hardware.wifi": true,
-     *         "android.hardware.wifi.direct": true,
-     *         "android.hardware.wifi.aware": false,
-     *         "android.hardware.wifi.passpoint": true,
-     *         "android.hardware.wifi.rtt": false
-     *       }
-     *     }
-     *   }
-     * }
-     * ```
-     * @see [PackageManager.hasSystemFeature]
-     * @return instance of [Info] object
-     */
-    fun featuresWifi(): Info {
-        features.wifi()
-        return this
-    }
-
-    /**
-     * All features.
-     *
-     * Example output:
-     * ```
-     * {
-     *   "info-features": {
-     *     "packageManager": {
-     *       "hasSystemFeature": {
-     *         "android.hardware.audio.low_latency": false,
-     *         "android.hardware.audio.output": true,
-     *         "android.hardware.audio.pro": false,
-     *         "android.hardware.fingerprint": true,
-     *         "android.hardware.biometrics.face": true,
-     *         "android.hardware.biometrics.iris": false,
-     *         "android.hardware.bluetooth": true,
-     *         "android.hardware.bluetooth_le": true,
-     *         "android.hardware.camera": true,
-     *         "android.hardware.camera.any": true,
-     *         "android.hardware.camera.autofocus": true,
-     *         "android.hardware.camera.capability.manual_post_processing": true,
-     *         "android.hardware.camera.capability.manual_sensor": true,
-     *         "android.hardware.camera.capability.raw": true,
-     *         "android.hardware.camera.external": false,
-     *         "android.hardware.camera.flash": true,
-     *         "android.hardware.camera.front": true,
-     *         "android.hardware.camera.level.full": true,
-     *         "android.hardware.camera.ar": false,
-     *         "android.hardware.camera.concurrent": true,
-     *         "android.hardware.opengles.aep": false,
-     *         "android.hardware.vulkan.level": true,
-     *         "android.hardware.vulkan.version": true,
-     *         "android.hardware.vulkan.compute": true,
-     *         "android.software.vulkan.deqp.level": true,
-     *         "android.software.opengles.deqp.level": true,
-     *         "android.hardware.type.automotive": false,
-     *         "android.hardware.type.television": false,
-     *         "android.hardware.type.watch": false,
-     *         "android.software.leanback": false,
-     *         "android.software.leanback_only": false,
-     *         "android.hardware.type.embedded": false,
-     *         "android.hardware.type.pc": false,
-     *         "android.hardware.location": true,
-     *         "android.hardware.location.gps": true,
-     *         "android.hardware.location.network": true,
-     *         "android.hardware.nfc": false,
-     *         "android.hardware.nfc.hce": false,
-     *         "android.hardware.nfc.hcef": false,
-     *         "android.sofware.nfc.beam": false,
-     *         "android.hardware.nfc.ese": false,
-     *         "android.hardware.nfc.uicc": false,
-     *         "android.hardware.sensor.accelerometer": true,
-     *         "android.hardware.sensor.ambient_temperature": true,
-     *         "android.hardware.sensor.barometer": true,
-     *         "android.hardware.sensor.compass": true,
-     *         "android.hardware.sensor.gyroscope": true,
-     *         "android.hardware.sensor.heartrate": false,
-     *         "android.hardware.sensor.heartrate.ecg": false,
-     *         "android.hardware.sensor.light": true,
-     *         "android.hardware.sensor.proximity": true,
-     *         "android.hardware.sensor.relative_humidity": true,
-     *         "android.hardware.sensor.stepcounter": false,
-     *         "android.hardware.sensor.stepdetector": false,
-     *         "android.hardware.sensor.hinge_angle": true,
-     *         "android.hardware.sensor.accelerometer_limited_axes": false,
-     *         "android.hardware.sensor.accelerometer_limited_axes_uncalibrated": false,
-     *         "android.hardware.sensor.dynamic.head_tracker": false,
-     *         "android.hardware.sensor.gyroscope_limited_axes": false,
-     *         "android.hardware.sensor.gyroscope_limited_axes_uncalibrated": false,
-     *         "android.hardware.sensor.heading": false,
-     *         "android.hardware.telephony": true,
-     *         "android.hardware.telephony.cdma": false,
-     *         "android.hardware.telephony.gsm": true,
-     *         "android.hardware.telephony.euicc": false,
-     *         "android.hardware.telephony.mbms": false,
-     *         "android.hardware.telephony.ims": true,
-     *         "android.hardware.telephony.calling": true,
-     *         "android.hardware.telephony.data": true,
-     *         "android.hardware.telephony.euicc.mep": false,
-     *         "android.hardware.telephony.messaging": false,
-     *         "android.hardware.telephony.radio.access": true,
-     *         "android.hardware.telephony.subscription": true,
-     *         "android.hardware.faketouch": true,
-     *         "android.hardware.faketouch.multitouch.distinct": false,
-     *         "android.hardware.faketouch.multitouch.jazzhand": false,
-     *         "android.hardware.touchscreen": true,
-     *         "android.hardware.touchscreen.multitouch": true,
-     *         "android.hardware.touchscreen.multitouch.distinct": true,
-     *         "android.hardware.touchscreen.multitouch.jazzhand": true,
-     *         "android.software.vr.mode": false,
-     *         "android.hardware.vr.high_performance": false,
-     *         "android.hardware.vr.headtracking": false,
-     *         "android.hardware.wifi": true,
-     *         "android.hardware.wifi.direct": true,
-     *         "android.hardware.wifi.aware": false,
-     *         "android.hardware.wifi.passpoint": true,
-     *         "android.hardware.wifi.rtt": false,
-     *         "android.software.app_widgets": true,
-     *         "android.software.backup": true,
-     *         "android.software.connectionservice": false,
-     *         "android.hardware.consumerir": false,
-     *         "android.software.device_admin": true,
-     *         "android.hardware.gamepad": false,
-     *         "android.hardware.sensor.hifi_sensors": false,
-     *         "android.software.home_screen": true,
-     *         "android.software.input_methods": true,
-     *         "android.software.live_tv": false,
-     *         "android.software.live_wallpaper": true,
-     *         "android.software.managed_users": true,
-     *         "android.hardware.microphone": true,
-     *         "android.software.midi": true,
-     *         "android.software.print": true,
-     *         "android.hardware.screen.landscape": true,
-     *         "android.hardware.screen.portrait": true,
-     *         "android.software.securely_removes_users": true,
-     *         "android.software.sip": false,
-     *         "android.software.sip.voip": false,
-     *         "android.hardware.usb.accessory": false,
-     *         "android.hardware.usb.host": false,
-     *         "android.software.verified_boot": true,
-     *         "android.software.webview": true,
-     *         "android.hardware.ethernet": false,
-     *         "android.software.freeform_window_management": false,
-     *         "android.software.picture_in_picture": true,
-     *         "android.software.activities_on_secondary_displays": true,
-     *         "android.software.autofill": true,
-     *         "android.software.companion_device_setup": true,
-     *         "android.hardware.ram.low": false,
-     *         "android.hardware.ram.normal": true,
-     *         "android.software.cant_save_state": true,
-     *         "android.hardware.strongbox_keystore": false,
-     *         "android.software.ipsec_tunnels": true,
-     *         "android.software.secure_lock_screen": true,
-     *         "android.software.controls": true,
-     *         "android.hardware.se.omapi.ese": false,
-     *         "android.hardware.se.omapi.sd": false,
-     *         "android.hardware.se.omapi.uicc": false,
-     *         "android.hardware.hardware_keystore": true,
-     *         "android.hardware.identity_credential": true,
-     *         "android.hardware.identity_credential_direct_access": false,
-     *         "android.hardware.keystore.app_attest_key": true,
-     *         "android.hardware.keystore.limited_use_key": false,
-     *         "android.hardware.keystore.single_use_key": false,
-     *         "android.hardware.security.model.compatible": true,
-     *         "android.software.expanded_picture_in_picture": false,
-     *         "android.software.window_magnification": true,
-     *         "android.software.telecom": true,
-     *         "android.software.credentials": true,
-     *         "android.software.device_lock": true,
-     *         "android.software.ipsec_tunnel_migration": true,
-     *         "android.hardware.uwb": false,
-     *         "android.software.wallet_location_based_suggestions": false
-     *       }
-     *     }
-     *   }
-     * }
-     * ```
-     * @see [PackageManager.hasSystemFeature]
-     * @return instance of [Info] object
-     */
-    fun features(): Info {
-        features.full()
-        return this
-    }
-
-    /**
-     * List of locales available in the application.
-     *
-     * Example output:
-     * ```
-     * {
-     *   "info-locales": {
-     *     "localeManager": {
-     *       "applicationLocales": "[es_ES]"
-     *     }
-     *   }
-     * }
-     * ```
-     * @return reference to [Info] object
-     * @see [LocaleManager.getApplicationLocales]
-     * @return instance of [Info] object
-     */
-    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
-    fun localesApplication(): Info {
-        locales.application()
-        return this
-    }
-
-    /**
-     * Grammatical gender.
-     *
-     * Example output:
-     * ```
-     * {
-     *   "info-locales": {
-     *     "grammaticalInflectionManager": {
-     *       "applicationGrammaticalGender": "0 (not specified)"
-     *     },
-     *     "configuration": {
-     *       "grammaticalGender": "0 (not specified)"
-     *     }
-     *   }
-     * }
-     * ```
-     * @return reference to [Info] object
-     * @see [Configuration.getGrammaticalGender]
-     * @see [GrammaticalInflectionManager.getApplicationGrammaticalGender]
-     */
-    @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
-    fun localesGrammaticalGender(): Info {
-        locales.grammaticalGender()
-        return this
-    }
-
-    /**
-     * System locals.
-     *
-     * Example output:
-     * ```
-     * {
-     *   "info-locales": {
-     *     "configuration": {
-     *       "locale": "es_ES",
-     *       "locales": "[es_ES,en_US]"
-     *     },
-     *     "localeManager": {
-     *       "systemLocales": "[es_ES,en_US]"
-     *     }
-     *   }
-     * }
-     * ```
-     * @return reference to [Info] object
-     * @see [Configuration.getLocales]
-     * @see [Configuration.locale]
-     * @see [LocaleManager.getSystemLocales]
-     */
-    fun localesSystem(): Info {
-        locales.system()
-        return this
-    }
-
-    /**
-     * Get All information related to locales.
-     *
-     * Example output for API 34:
-     * ```
-     * {
-     *   "info-locales": {
-     *     "configuration": {
-     *       "locale": "es_ES",
-     *       "locales": "[es_ES,en_US]",
-     *       "grammaticalGender": "0 (not specified)"
-     *     },
-     *     "localeManager": {
-     *       "systemLocales": "[es_ES,en_US]",
-     *       "applicationLocales": "[]"
-     *     },
-     *     "grammaticalInflectionManager": {
-     *       "applicationGrammaticalGender": "0 (not specified)"
-     *     }
-     *   }
-     * }
-     * ```
-     * @return reference to [Info] object
-     * @see [Configuration.getLocales]
-     * @see [Configuration.locale]
-     * @see [LocaleManager.getApplicationLocales]
-     * @see [LocaleManager.getSystemLocales]
-     * @see [Configuration.getGrammaticalGender]
-     * @see [GrammaticalInflectionManager.getApplicationGrammaticalGender]
-     */
-    fun locales(): Info {
-        locales.full()
-        return this
+    private val root = json.getOrCreate("info-sensors")
+    private val sensorManager =
+        (context.getSystemService(Context.SENSOR_SERVICE) as SensorManager)
+    private val packageManager = context.packageManager
+    private val featuresJson: JSONObject by lazy {
+        root.getOrCreate("packageManager")
+            .getOrCreate("hasSystemFeature")
     }
 
     /**
@@ -901,15 +147,47 @@ class Info(private val applicationContext: Context) {
      *   }
      * }
      * ```
-     * @return reference to [Info] object
      * @see [Sensor.TYPE_ACCELEROMETER]
      * @see [Sensor.TYPE_ACCELEROMETER_UNCALIBRATED]
      * @see [Sensor.TYPE_ACCELEROMETER_LIMITED_AXES]
      * @see [Sensor.TYPE_ACCELEROMETER_LIMITED_AXES_UNCALIBRATED]
      */
-    fun sensorsAccelerometer(): Info {
-        sensors.accelerometer()
-        return this
+    internal fun accelerometer() {
+        printFeature(PackageManager.FEATURE_SENSOR_ACCELEROMETER)
+        sensorManager.getSensorList(TYPE_ACCELEROMETER).forEachIndexed { index, sensor ->
+            val sensorJson = root.getOrCreate("sensorManager")
+                .getOrCreate("getSensorList(TYPE_ACCELEROMETER)")
+                .getOrCreate("[$index]")
+            fullSensorInfo(sensorJson, sensor)
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            sensorManager.getSensorList(TYPE_ACCELEROMETER_UNCALIBRATED)
+                .forEachIndexed { index, sensor ->
+                    val sensorJson = root.getOrCreate("sensorManager")
+                        .getOrCreate("getSensorList(TYPE_ACCELEROMETER_UNCALIBRATED)")
+                        .getOrCreate("[$index]")
+                    fullSensorInfo(sensorJson, sensor)
+                }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                printFeature(PackageManager.FEATURE_SENSOR_ACCELEROMETER_LIMITED_AXES)
+                printFeature(PackageManager.FEATURE_SENSOR_ACCELEROMETER_LIMITED_AXES_UNCALIBRATED)
+                sensorManager.getSensorList(TYPE_ACCELEROMETER_LIMITED_AXES)
+                    .forEachIndexed { index, sensor ->
+                        val sensorJson = root.getOrCreate("sensorManager")
+                            .getOrCreate("getSensorList(TYPE_ACCELEROMETER_LIMITED_AXES)")
+                            .getOrCreate("[$index]")
+                        fullSensorInfo(sensorJson, sensor)
+                    }
+                sensorManager.getSensorList(TYPE_ACCELEROMETER_LIMITED_AXES_UNCALIBRATED)
+                    .forEachIndexed { index, sensor ->
+                        val sensorJson = root.getOrCreate("sensorManager")
+                            .getOrCreate("getSensorList(TYPE_ACCELEROMETER_LIMITED_AXES_UNCALIBRATED)")
+                            .getOrCreate("[$index]")
+                        fullSensorInfo(sensorJson, sensor)
+                    }
+            }
+        }
     }
 
     /**
@@ -946,12 +224,15 @@ class Info(private val applicationContext: Context) {
      *   }
      * }
      * ```
-     * @return reference to [Info] object
      * @see [Sensor.TYPE_GRAVITY]
      */
-    fun sensorsGravity(): Info {
-        sensors.gravity()
-        return this
+    internal fun gravity() {
+        sensorManager.getSensorList(TYPE_GRAVITY).forEachIndexed { index, sensor ->
+            val sensorJson = root.getOrCreate("sensorManager")
+                .getOrCreate("getSensorList(TYPE_GRAVITY)")
+                .getOrCreate("[$index]")
+            fullSensorInfo(sensorJson, sensor)
+        }
     }
 
     /**
@@ -1017,15 +298,44 @@ class Info(private val applicationContext: Context) {
      *   }
      * }
      * ```
-     * @return reference to [Info] object
      * @see [Sensor.TYPE_GYROSCOPE]
      * @see [Sensor.TYPE_GYROSCOPE_UNCALIBRATED]
      * @see [Sensor.TYPE_GYROSCOPE_LIMITED_AXES]
      * @see [Sensor.TYPE_GYROSCOPE_LIMITED_AXES_UNCALIBRATED]
      */
-    fun sensorsGyroscope(): Info {
-        sensors.gyroscope()
-        return this
+    internal fun gyroscope() {
+        printFeature(PackageManager.FEATURE_SENSOR_GYROSCOPE)
+        sensorManager.getSensorList(TYPE_GYROSCOPE).forEachIndexed { index, sensor ->
+            val sensorJson = root.getOrCreate("sensorManager")
+                .getOrCreate("getSensorList(TYPE_GYROSCOPE)")
+                .getOrCreate("[$index]")
+            fullSensorInfo(sensorJson, sensor)
+        }
+        sensorManager.getSensorList(TYPE_GYROSCOPE_UNCALIBRATED).forEachIndexed { index, sensor ->
+            val sensorJson = root.getOrCreate("sensorManager")
+                .getOrCreate("getSensorList(TYPE_GYROSCOPE_UNCALIBRATED)")
+                .getOrCreate("[$index]")
+            fullSensorInfo(sensorJson, sensor)
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            printFeature(PackageManager.FEATURE_SENSOR_GYROSCOPE_LIMITED_AXES)
+            printFeature(PackageManager.FEATURE_SENSOR_GYROSCOPE_LIMITED_AXES_UNCALIBRATED)
+            sensorManager.getSensorList(TYPE_GYROSCOPE_LIMITED_AXES)
+                .forEachIndexed { index, sensor ->
+                    val sensorJson = root.getOrCreate("sensorManager")
+                        .getOrCreate("getSensorList(TYPE_GYROSCOPE_LIMITED_AXES)")
+                        .getOrCreate("[$index]")
+                    fullSensorInfo(sensorJson, sensor)
+                }
+            sensorManager.getSensorList(TYPE_GYROSCOPE_LIMITED_AXES_UNCALIBRATED)
+                .forEachIndexed { index, sensor ->
+                    val sensorJson = root.getOrCreate("sensorManager")
+                        .getOrCreate("getSensorList(TYPE_GYROSCOPE_LIMITED_AXES_UNCALIBRATED)")
+                        .getOrCreate("[$index]")
+                    fullSensorInfo(sensorJson, sensor)
+                }
+        }
     }
 
     /**
@@ -1042,16 +352,19 @@ class Info(private val applicationContext: Context) {
      *     }
      *   }
      * }
-     *
      * ```
-     * @return reference to [Info] object
      * @see [Sensor.TYPE_HEADING]
      */
     // TODO(Viktor) add sample to doc.
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
-    fun sensorsHeading(): Info {
-        sensors.heading()
-        return this
+    internal fun heading() {
+        printFeature(PackageManager.FEATURE_SENSOR_HEADING)
+        sensorManager.getSensorList(TYPE_HEADING).forEachIndexed { index, sensor ->
+            val sensorJson = root.getOrCreate("sensorManager")
+                .getOrCreate("getSensorList(TYPE_HEADING)")
+                .getOrCreate("[$index]")
+            fullSensorInfo(sensorJson, sensor)
+        }
     }
 
     /**
@@ -1069,14 +382,18 @@ class Info(private val applicationContext: Context) {
      *   }
      * }
      * ```
-     * @return reference to [Info] object
      * @see [Sensor.TYPE_HEAD_TRACKER]
      */
     // TODO(Viktor) add sample to doc.
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
-    fun sensorsHeadTracker(): Info {
-        sensors.headTracker()
-        return this
+    internal fun headTracker() {
+        printFeature(PackageManager.FEATURE_SENSOR_DYNAMIC_HEAD_TRACKER)
+        sensorManager.getSensorList(TYPE_HEAD_TRACKER).forEachIndexed { index, sensor ->
+            val sensorJson = root.getOrCreate("sensorManager")
+                .getOrCreate("getSensorList(TYPE_HEAD_TRACKER)")
+                .getOrCreate("[$index]")
+            fullSensorInfo(sensorJson, sensor)
+        }
     }
 
     /**
@@ -1095,14 +412,27 @@ class Info(private val applicationContext: Context) {
      *   }
      * }
      * ```
-     * @return reference to [Info] object
      * @see [Sensor.TYPE_HEART_RATE]
      * @see [Sensor.TYPE_HEART_BEAT]
      */
     // TODO(Viktor) add sample to doc.
-    fun sensorsHeart(): Info {
-        sensors.heart()
-        return this
+    internal fun heart() {
+        printFeature(PackageManager.FEATURE_SENSOR_HEART_RATE)
+        printFeature(PackageManager.FEATURE_SENSOR_HEART_RATE_ECG)
+        sensorManager.getSensorList(TYPE_HEART_RATE).forEachIndexed { index, sensor ->
+            val sensorJson = root.getOrCreate("sensorManager")
+                .getOrCreate("getSensorList(TYPE_HEART_RATE)")
+                .getOrCreate("[$index]")
+            fullSensorInfo(sensorJson, sensor)
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            sensorManager.getSensorList(TYPE_HEART_BEAT).forEachIndexed { index, sensor ->
+                val sensorJson = root.getOrCreate("sensorManager")
+                    .getOrCreate("getSensorList(TYPE_HEART_BEAT)")
+                    .getOrCreate("[$index]")
+                fullSensorInfo(sensorJson, sensor)
+            }
+        }
     }
 
     /**
@@ -1144,13 +474,17 @@ class Info(private val applicationContext: Context) {
      *   }
      * }
      * ```
-     * @return reference to [Info] object
      * @see [Sensor.TYPE_HINGE_ANGLE]
      */
     @RequiresApi(Build.VERSION_CODES.R)
-    fun sensorsHingeAngle(): Info {
-        sensors.hingeAngle()
-        return this
+    internal fun hingeAngle() {
+        printFeature(PackageManager.FEATURE_SENSOR_HINGE_ANGLE)
+        sensorManager.getSensorList(TYPE_HINGE_ANGLE).forEachIndexed { index, sensor ->
+            val sensorJson = root.getOrCreate("sensorManager")
+                .getOrCreate("getSensorList(TYPE_HINGE_ANGLE)")
+                .getOrCreate("[$index]")
+            fullSensorInfo(sensorJson, sensor)
+        }
     }
 
     /**
@@ -1192,12 +526,16 @@ class Info(private val applicationContext: Context) {
      *   }
      * }
      * ```
-     * @return reference to [Info] object
      * @see [Sensor.TYPE_LIGHT]
      */
-    fun sensorsLight(): Info {
-        sensors.light()
-        return this
+    internal fun light() {
+        printFeature(PackageManager.FEATURE_SENSOR_LIGHT)
+        sensorManager.getSensorList(TYPE_LIGHT).forEachIndexed { index, sensor ->
+            val sensorJson = root.getOrCreate("sensorManager")
+                .getOrCreate("getSensorList(TYPE_LIGHT)")
+                .getOrCreate("[$index]")
+            fullSensorInfo(sensorJson, sensor)
+        }
     }
 
     /**
@@ -1234,12 +572,15 @@ class Info(private val applicationContext: Context) {
      *   }
      * }
      * ```
-     * @return reference to [Info] object
      * @see [Sensor.TYPE_LINEAR_ACCELERATION]
      */
-    fun sensorsLinearAcceleration(): Info {
-        sensors.linearAcceleration()
-        return this
+    internal fun linearAcceleration() {
+        sensorManager.getSensorList(TYPE_LINEAR_ACCELERATION).forEachIndexed { index, sensor ->
+            val sensorJson = root.getOrCreate("sensorManager")
+                .getOrCreate("getSensorList(TYPE_LINEAR_ACCELERATION)")
+                .getOrCreate("[$index]")
+            fullSensorInfo(sensorJson, sensor)
+        }
     }
 
     /**
@@ -1251,14 +592,18 @@ class Info(private val applicationContext: Context) {
      *   "info-sensors": {}
      * }
      * ```
-     * @return reference to [Info] object
      * @see [Sensor.TYPE_LOW_LATENCY_OFFBODY_DETECT]
      */
     // TODO(Viktor) add sample to doc.
     @RequiresApi(Build.VERSION_CODES.O)
-    fun sensorsLowLatencyOffBodyDetect(): Info {
-        sensors.lowLatencyOffBodyDetect()
-        return this
+    internal fun lowLatencyOffBodyDetect() {
+        sensorManager.getSensorList(TYPE_LOW_LATENCY_OFFBODY_DETECT)
+            .forEachIndexed { index, sensor ->
+                val sensorJson = root.getOrCreate("sensorManager")
+                    .getOrCreate("getSensorList(TYPE_LOW_LATENCY_OFFBODY_DETECT)")
+                    .getOrCreate("[$index]")
+                fullSensorInfo(sensorJson, sensor)
+            }
     }
 
     /**
@@ -1317,13 +662,23 @@ class Info(private val applicationContext: Context) {
      *   }
      * }
      * ```
-     * @return reference to [Info] object
      * @see [Sensor.TYPE_MAGNETIC_FIELD]
      * @see [Sensor.TYPE_MAGNETIC_FIELD_UNCALIBRATED]
      */
-    fun sensorsMagneticField(): Info {
-        sensors.magneticField()
-        return this
+    internal fun magneticField() {
+        sensorManager.getSensorList(TYPE_MAGNETIC_FIELD).forEachIndexed { index, sensor ->
+            val sensorJson = root.getOrCreate("sensorManager")
+                .getOrCreate("getSensorList(TYPE_MAGNETIC_FIELD)")
+                .getOrCreate("[$index]")
+            fullSensorInfo(sensorJson, sensor)
+        }
+        sensorManager.getSensorList(TYPE_MAGNETIC_FIELD_UNCALIBRATED)
+            .forEachIndexed { index, sensor ->
+                val sensorJson = root.getOrCreate("sensorManager")
+                    .getOrCreate("getSensorList(TYPE_MAGNETIC_FIELD_UNCALIBRATED)")
+                    .getOrCreate("[$index]")
+                fullSensorInfo(sensorJson, sensor)
+            }
     }
 
     /**
@@ -1335,14 +690,17 @@ class Info(private val applicationContext: Context) {
      *   "info-sensors": {}
      * }
      * ```
-     * @return reference to [Info] object
      * @see [Sensor.TYPE_MOTION_DETECT]
      */
     // TODO(Viktor) add sample to doc.
     @RequiresApi(Build.VERSION_CODES.N)
-    fun sensorsMotionDetect(): Info {
-        sensors.motionDetect()
-        return this
+    internal fun motionDetect() {
+        sensorManager.getSensorList(TYPE_MOTION_DETECT).forEachIndexed { index, sensor ->
+            val sensorJson = root.getOrCreate("sensorManager")
+                .getOrCreate("getSensorList(TYPE_MOTION_DETECT)")
+                .getOrCreate("[$index]")
+            fullSensorInfo(sensorJson, sensor)
+        }
     }
 
     /**
@@ -1399,12 +757,16 @@ class Info(private val applicationContext: Context) {
      *   }
      * }
      * ```
-     * @return reference to [Info] object
      * @see [Sensor.TYPE_ORIENTATION]
      */
-    fun sensorsOrientation(): Info {
-        sensors.orientation()
-        return this
+    internal fun orientation() {
+        @Suppress("DEPRECATION")
+        sensorManager.getSensorList(TYPE_ORIENTATION).forEachIndexed { index, sensor ->
+            val sensorJson = root.getOrCreate("sensorManager")
+                .getOrCreate("getSensorList(TYPE_ORIENTATION)")
+                .getOrCreate("[$index]")
+            fullSensorInfo(sensorJson, sensor)
+        }
     }
 
     /**
@@ -1416,14 +778,17 @@ class Info(private val applicationContext: Context) {
      *   "info-sensors": {}
      * }
      * ```
-     * @return reference to [Info] object
      * @see [Sensor.TYPE_POSE_6DOF]
      */
     // TODO(Viktor) add sample to doc
     @RequiresApi(Build.VERSION_CODES.N)
-    fun sensorsPOSE6DOF(): Info {
-        sensors.pose6Dof()
-        return this
+    internal fun pose6Dof() {
+        sensorManager.getSensorList(TYPE_POSE_6DOF).forEachIndexed { index, sensor ->
+            val sensorJson = root.getOrCreate("sensorManager")
+                .getOrCreate("getSensorList(TYPE_POSE_6DOF)")
+                .getOrCreate("[$index]")
+            fullSensorInfo(sensorJson, sensor)
+        }
     }
 
     /**
@@ -1465,12 +830,16 @@ class Info(private val applicationContext: Context) {
      *   }
      * }
      * ```
-     * @return reference to [Info] object
      * @see [Sensor.TYPE_PRESSURE]
      */
-    fun sensorsPressure(): Info {
-        sensors.pressure()
-        return this
+    internal fun pressure() {
+        printFeature(PackageManager.FEATURE_SENSOR_BAROMETER)
+        sensorManager.getSensorList(TYPE_PRESSURE).forEachIndexed { index, sensor ->
+            val sensorJson = root.getOrCreate("sensorManager")
+                .getOrCreate("getSensorList(TYPE_PRESSURE)")
+                .getOrCreate("[$index]")
+            fullSensorInfo(sensorJson, sensor)
+        }
     }
 
     /**
@@ -1512,12 +881,16 @@ class Info(private val applicationContext: Context) {
      *   }
      * }
      * ```
-     * @return reference to [Info] object
      * @see [Sensor.TYPE_PROXIMITY]
      */
-    fun sensorsProximity(): Info {
-        sensors.proximity()
-        return this
+    internal fun proximity() {
+        printFeature(PackageManager.FEATURE_SENSOR_PROXIMITY)
+        sensorManager.getSensorList(TYPE_PROXIMITY).forEachIndexed { index, sensor ->
+            val sensorJson = root.getOrCreate("sensorManager")
+                .getOrCreate("getSensorList(TYPE_PROXIMITY)")
+                .getOrCreate("[$index]")
+            fullSensorInfo(sensorJson, sensor)
+        }
     }
 
     /**
@@ -1559,12 +932,16 @@ class Info(private val applicationContext: Context) {
      *   }
      * }
      * ```
-     * @return reference to [Info] object
      * @see [Sensor.TYPE_RELATIVE_HUMIDITY]
      */
-    fun sensorsRelativeHumidity(): Info {
-        sensors.relativeHumidity()
-        return this
+    internal fun relativeHumidity() {
+        printFeature(PackageManager.FEATURE_SENSOR_RELATIVE_HUMIDITY)
+        sensorManager.getSensorList(TYPE_RELATIVE_HUMIDITY).forEachIndexed { index, sensor ->
+            val sensorJson = root.getOrCreate("sensorManager")
+                .getOrCreate("getSensorList(TYPE_RELATIVE_HUMIDITY)")
+                .getOrCreate("[$index]")
+            fullSensorInfo(sensorJson, sensor)
+        }
     }
 
     /**
@@ -1645,14 +1022,30 @@ class Info(private val applicationContext: Context) {
      *   }
      * }
      * ```
-     * @return reference to [Info] object
      * @see [Sensor.TYPE_GAME_ROTATION_VECTOR]
      * @see [Sensor.TYPE_GEOMAGNETIC_ROTATION_VECTOR]
      * @see [Sensor.TYPE_ROTATION_VECTOR]
      */
-    fun sensorsRotationVector(): Info {
-        sensors.rotationVector()
-        return this
+    internal fun rotationVector() {
+        sensorManager.getSensorList(TYPE_GAME_ROTATION_VECTOR).forEachIndexed { index, sensor ->
+            val sensorJson = root.getOrCreate("sensorManager")
+                .getOrCreate("getSensorList(TYPE_GAME_ROTATION_VECTOR)")
+                .getOrCreate("[$index]")
+            fullSensorInfo(sensorJson, sensor)
+        }
+        sensorManager.getSensorList(TYPE_GEOMAGNETIC_ROTATION_VECTOR)
+            .forEachIndexed { index, sensor ->
+                val sensorJson = root.getOrCreate("sensorManager")
+                    .getOrCreate("getSensorList(TYPE_GEOMAGNETIC_ROTATION_VECTOR)")
+                    .getOrCreate("[$index]")
+                fullSensorInfo(sensorJson, sensor)
+            }
+        sensorManager.getSensorList(TYPE_ROTATION_VECTOR).forEachIndexed { index, sensor ->
+            val sensorJson = root.getOrCreate("sensorManager")
+                .getOrCreate("getSensorList(TYPE_ROTATION_VECTOR)")
+                .getOrCreate("[$index]")
+            fullSensorInfo(sensorJson, sensor)
+        }
     }
 
     /**
@@ -1664,13 +1057,16 @@ class Info(private val applicationContext: Context) {
      *   "info-sensors": {}
      * }
      * ```
-     * @return reference to [Info] object
      * @see [Sensor.TYPE_SIGNIFICANT_MOTION]
      */
     // TODO(Viktor) add sample to doc
-    fun sensorsSignificantMotion(): Info {
-        sensors.significantMotion()
-        return this
+    internal fun significantMotion() {
+        sensorManager.getSensorList(TYPE_SIGNIFICANT_MOTION).forEachIndexed { index, sensor ->
+            val sensorJson = root.getOrCreate("sensorManager")
+                .getOrCreate("getSensorList(TYPE_SIGNIFICANT_MOTION)")
+                .getOrCreate("[$index]")
+            fullSensorInfo(sensorJson, sensor)
+        }
     }
 
     /**
@@ -1682,14 +1078,17 @@ class Info(private val applicationContext: Context) {
      *   "info-sensors": {}
      * }
      * ```
-     * @return reference to [Info] object
      * @see [Sensor.TYPE_STATIONARY_DETECT]
      */
     // TODO(Viktor) add sample to doc
     @RequiresApi(Build.VERSION_CODES.N)
-    fun sensorsStationaryDetect(): Info {
-        sensors.stationaryDetect()
-        return this
+    internal fun stationaryDetect() {
+        sensorManager.getSensorList(TYPE_STATIONARY_DETECT).forEachIndexed { index, sensor ->
+            val sensorJson = root.getOrCreate("sensorManager")
+                .getOrCreate("getSensorList(TYPE_STATIONARY_DETECT)")
+                .getOrCreate("[$index]")
+            fullSensorInfo(sensorJson, sensor)
+        }
     }
 
     /**
@@ -1709,14 +1108,26 @@ class Info(private val applicationContext: Context) {
      * }
      *
      * ```
-     * @return reference to [Info] object
      * @see [Sensor.TYPE_STEP_COUNTER]
      * @see [Sensor.TYPE_STEP_DETECTOR]
      */
     // TODO(Viktor) add sample to doc
-    fun sensorsSteps(): Info {
-        sensors.step()
-        return this
+    internal fun step() {
+        printFeature(PackageManager.FEATURE_SENSOR_STEP_COUNTER)
+        printFeature(PackageManager.FEATURE_SENSOR_STEP_DETECTOR)
+        sensorManager.getSensorList(TYPE_STEP_COUNTER).forEachIndexed { index, sensor ->
+            val sensorJson = root.getOrCreate("sensorManager")
+                .getOrCreate("getSensorList(TYPE_STEP_COUNTER)")
+                .getOrCreate("[$index]")
+            fullSensorInfo(sensorJson, sensor)
+        }
+
+        sensorManager.getSensorList(TYPE_STEP_DETECTOR).forEachIndexed { index, sensor ->
+            val sensorJson = root.getOrCreate("sensorManager")
+                .getOrCreate("getSensorList(TYPE_STEP_DETECTOR)")
+                .getOrCreate("[$index]")
+            fullSensorInfo(sensorJson, sensor)
+        }
     }
 
     /**
@@ -1758,13 +1169,23 @@ class Info(private val applicationContext: Context) {
      *   }
      * }
      * ```
-     * @return reference to [Info] object
      * @see [Sensor.TYPE_AMBIENT_TEMPERATURE]
      * @see [Sensor.TYPE_TEMPERATURE]
      */
-    fun sensorsTemperature(): Info {
-        sensors.temperature()
-        return this
+    internal fun temperature() {
+        printFeature(PackageManager.FEATURE_SENSOR_AMBIENT_TEMPERATURE)
+        sensorManager.getSensorList(TYPE_AMBIENT_TEMPERATURE).forEachIndexed { index, sensor ->
+            val sensorJson = root.getOrCreate("sensorManager")
+                .getOrCreate("getSensorList(TYPE_AMBIENT_TEMPERATURE)")
+                .getOrCreate("[$index]")
+            fullSensorInfo(sensorJson, sensor)
+        }
+        sensorManager.getSensorList(TYPE_TEMPERATURE).forEachIndexed { index, sensor ->
+            val sensorJson = root.getOrCreate("sensorManager")
+                .getOrCreate("getSensorList(TYPE_TEMPERATURE)")
+                .getOrCreate("[$index]")
+            fullSensorInfo(sensorJson, sensor)
+        }
     }
 
     /**
@@ -1780,14 +1201,22 @@ class Info(private val applicationContext: Context) {
      *   }
      * }
      * ```
-     * @return reference to [Info] object
      * @see [SensorManager.getDynamicSensorList]
      */
     // TODO(Viktor) add sample to doc
     @RequiresApi(Build.VERSION_CODES.N)
-    fun sensorsDynamic(): Info {
-        sensors.dynamicAvailable()
-        return this
+    internal fun dynamicAvailable() {
+        root.getOrCreate("sensorManager")
+            .put(
+                "isDynamicSensorDiscoverySupported",
+                sensorManager.isDynamicSensorDiscoverySupported,
+            )
+        sensorManager.getDynamicSensorList(TYPE_ALL).forEachIndexed { index, sensor ->
+            val sensorJson = root.getOrCreate("sensorManager")
+                .getOrCreate("getDynamicSensorList(TYPE_ALL)")
+                .getOrCreate("[$index]")
+            shortSensorInfo(sensorJson, sensor)
+        }
     }
 
     /**
@@ -1832,12 +1261,15 @@ class Info(private val applicationContext: Context) {
      *   }
      * }
      * ```
-     * @return reference to [Info] object
      * @see [SensorManager.getSensorList]
      */
-    fun sensorsAvailable(): Info {
-        sensors.available()
-        return this
+    internal fun available() {
+        sensorManager.getSensorList(TYPE_ALL).forEachIndexed { index, sensor ->
+            val sensorJson = root.getOrCreate("sensorManager")
+                .getOrCreate("getSensorList(TYPE_ALL)")
+                .getOrCreate("[$index]")
+            shortSensorInfo(sensorJson, sensor)
+        }
     }
 
     /**
@@ -1913,36 +1345,103 @@ class Info(private val applicationContext: Context) {
      *   }
      * }
      * ```
-     * @return reference to [Info] object
      * @see [SensorManager.getSensorList]
      * @see [SensorManager.getDynamicSensorList]
      */
-    fun sensors(): Info {
-        sensors.full()
-        return this
-    }
-
-    /**
-     * Get info as Json string.
-     *
-     * @param prettyPrint true if use pretty print.
-     * @return string
-     */
-    fun getText(prettyPrint: Boolean = false): String {
-        return if (prettyPrint) {
-            json.toString(2)
-        } else {
-            json.toString()
+    internal fun full() {
+        printFeature(PackageManager.FEATURE_SENSOR_ACCELEROMETER)
+        printFeature(PackageManager.FEATURE_SENSOR_AMBIENT_TEMPERATURE)
+        printFeature(PackageManager.FEATURE_SENSOR_BAROMETER)
+        printFeature(PackageManager.FEATURE_SENSOR_COMPASS)
+        printFeature(PackageManager.FEATURE_SENSOR_GYROSCOPE)
+        printFeature(PackageManager.FEATURE_SENSOR_HEART_RATE)
+        printFeature(PackageManager.FEATURE_SENSOR_HEART_RATE_ECG)
+        printFeature(PackageManager.FEATURE_SENSOR_LIGHT)
+        printFeature(PackageManager.FEATURE_SENSOR_PROXIMITY)
+        printFeature(PackageManager.FEATURE_SENSOR_RELATIVE_HUMIDITY)
+        printFeature(PackageManager.FEATURE_SENSOR_STEP_COUNTER)
+        printFeature(PackageManager.FEATURE_SENSOR_STEP_DETECTOR)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            printFeature(PackageManager.FEATURE_SENSOR_HINGE_ANGLE)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                printFeature(PackageManager.FEATURE_SENSOR_ACCELEROMETER_LIMITED_AXES)
+                printFeature(PackageManager.FEATURE_SENSOR_ACCELEROMETER_LIMITED_AXES_UNCALIBRATED)
+                printFeature(PackageManager.FEATURE_SENSOR_DYNAMIC_HEAD_TRACKER)
+                printFeature(PackageManager.FEATURE_SENSOR_GYROSCOPE_LIMITED_AXES)
+                printFeature(PackageManager.FEATURE_SENSOR_GYROSCOPE_LIMITED_AXES_UNCALIBRATED)
+                printFeature(PackageManager.FEATURE_SENSOR_HEADING)
+            }
+        }
+        available()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            dynamicAvailable()
         }
     }
 
-    /**
-     * Print info in logcat.
-     *
-     * @param tag custom tag fpr the log
-     * @param prettyPrint true if use pretty print.
-     */
-    fun print(tag: String = TAG, prettyPrint: Boolean = true) {
-        Log.i(tag, getText(prettyPrint))
+    private fun shortSensorInfo(sensorJson: JSONObject, sensor: Sensor) {
+        sensorJson.put("name", sensor.name)
+            .put("stringType", sensor.stringType)
+            .put("type", sensor.type)
+            .put("vendor", sensor.vendor)
+            .put("version", sensor.version)
+    }
+
+    private fun fullSensorInfo(sensorJson: JSONObject, sensor: Sensor) {
+        shortSensorInfo(sensorJson, sensor)
+        sensorJson.put("fifoMaxEventCount", sensor.fifoMaxEventCount)
+            .put("fifoReservedEventCount", sensor.fifoReservedEventCount)
+            .put("maxDelay", "${sensor.maxDelay} (${(sensor.maxDelay / 1000f)} millis.)")
+            .put("maximumRange", sensor.maximumRange)
+            .put("minDelay", "${sensor.minDelay} (${(sensor.minDelay / 1000f)} millis.)")
+            .put("power", "${sensor.power} (mA)")
+            .put(
+                "reportingMode",
+                String.format(
+                    "%s %s",
+                    sensor.reportingMode,
+                    reportingModeDetails(sensor.reportingMode),
+                ),
+            )
+            .put("resolution", sensor.resolution)
+            .put("isWakeUpSensor", sensor.isWakeUpSensor)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            sensorJson.put("id", sensor.id)
+                .put("isAdditionalInfoSupported", sensor.isAdditionalInfoSupported)
+                .put("isDynamicSensor", sensor.isDynamicSensor)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                sensorJson.put(
+                    "highestDirectReportRateLevel",
+                    String.format(
+                        "%s %s",
+                        sensor.highestDirectReportRateLevel,
+                        directReportRateLevelDetails(sensor.highestDirectReportRateLevel),
+                    ),
+                )
+            }
+        }
+    }
+
+    private fun reportingModeDetails(value: Int): String {
+        return when (value) {
+            REPORTING_MODE_CONTINUOUS -> "(REPORTING_MODE_CONTINUOUS)"
+            REPORTING_MODE_ONE_SHOT -> "(REPORTING_MODE_ONE_SHOT)"
+            REPORTING_MODE_ON_CHANGE -> "(REPORTING_MODE_ON_CHANGE)"
+            REPORTING_MODE_SPECIAL_TRIGGER -> "(REPORTING_MODE_SPECIAL_TRIGGER)"
+            else -> ""
+        }
+    }
+
+    private fun directReportRateLevelDetails(value: Int): String {
+        return when (value) {
+            RATE_STOP -> "(RATE_STOP)"
+            RATE_NORMAL -> "(RATE_NORMAL)"
+            RATE_FAST -> "(RATE_FAST)"
+            RATE_VERY_FAST -> "(RATE_VERY_FAST)"
+            else -> ""
+        }
+    }
+
+    private fun printFeature(feature: String) {
+        featuresJson.put(feature, packageManager.hasSystemFeature(feature))
     }
 }
