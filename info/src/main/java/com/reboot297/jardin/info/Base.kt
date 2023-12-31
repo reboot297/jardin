@@ -14,10 +14,23 @@
  * limitations under the License.
  */
 
-// Top-level build file where you can add configuration options common to all sub-projects/modules.
-plugins {
-    id("com.android.application") version "8.2.0" apply false
-    id("org.jetbrains.kotlin.android") version "1.9.0" apply false
-    id("io.gitlab.arturbosch.detekt") version "1.23.1" apply false
-    id("com.android.library") version "8.2.0" apply false
+package com.reboot297.jardin.info
+
+import android.content.Context
+import android.content.pm.PackageManager
+import androidx.core.content.ContextCompat
+
+internal abstract class Base(private val context: Context) {
+
+    protected fun checkPermission(permission: String): String? {
+        return if (ContextCompat.checkSelfPermission(
+                context,
+                permission,
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
+            null
+        } else {
+            "$permission is disabled"
+        }
+    }
 }

@@ -17,25 +17,30 @@
 package com.reboot297.jardin
 
 import android.os.Bundle
-import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.RecyclerView
 import com.reboot297.jardin.info.Info
+import com.reboot297.jardin.info.InfoAdapter
+import com.reboot297.jardin.info.Item
 
 class MainActivity : AppCompatActivity() {
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        findViewById<Button>(R.id.allInfoButton).setOnClickListener {
-            Info().mainInfo(applicationContext).print()
-        }
-
-        findViewById<Button>(R.id.batteryFullButton).setOnClickListener {
-            Info().batteryFull(applicationContext).print()
-        }
-
-        findViewById<Button>(R.id.batteryLightButton).setOnClickListener {
-            Info().battery(applicationContext).print()
-        }
+        val adapter = InfoAdapter(data)
+        val recyclerView = findViewById<RecyclerView>(R.id.itemsListView)
+        recyclerView.adapter = adapter
     }
+
+    private val data = arrayOf(
+        Item("Battery Full") { Info(applicationContext).battery().print() },
+        Item("Battery Characteristics") {
+            Info(applicationContext).batteryCharacteristics().print()
+        },
+        Item("Battery Energy") { Info(applicationContext).batteryEnergy().print() },
+        Item("Battery Status") { Info(applicationContext).batteryStatus().print() },
+        Item("") { },
+    )
 }
