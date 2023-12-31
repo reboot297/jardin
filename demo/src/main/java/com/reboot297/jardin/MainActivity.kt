@@ -16,7 +16,9 @@
 
 package com.reboot297.jardin
 
+import android.os.Build
 import android.os.Bundle
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.RecyclerView
 import com.reboot297.jardin.info.Info
@@ -41,6 +43,24 @@ class MainActivity : AppCompatActivity() {
         },
         Item("Battery Energy") { Info(applicationContext).batteryEnergy().print() },
         Item("Battery Status") { Info(applicationContext).batteryStatus().print() },
+        Item("") { },
+
+        Item("Locales Full") { Info(applicationContext).locales().print() },
+        Item("Locales Application") {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                Info(applicationContext).localesApplication().print()
+            } else {
+                Toast.makeText(this, "Available since API 33", Toast.LENGTH_LONG).show()
+            }
+        },
+        Item("Locales GrammaticalGender") {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                Info(applicationContext).localesGrammaticalGender().print()
+            } else {
+                Toast.makeText(this, "Available since API 34", Toast.LENGTH_LONG).show()
+            }
+        },
+        Item("Locales System") { Info(applicationContext).localesSystem().print() },
         Item("") { },
     )
 }
