@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023. Viktor Pop
+ * Copyright (c) 2024. Viktor Pop
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,24 +15,17 @@
  */
 
 plugins {
-    id("com.android.application")
+    id("com.android.library")
     id("org.jetbrains.kotlin.android")
-    id("io.gitlab.arturbosch.detekt")
-}
-apply {
-    from("$rootDir/tools/script-check.gradle")
 }
 
 android {
-    namespace = "com.reboot297.jardin"
+    namespace = "com.reboot297.jardin.core"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.reboot297.jardin"
         minSdk = 23
-        targetSdk = 34
-        versionCode = 1
-        versionName = "0.1.0"
+        consumerProguardFiles("consumer-rules.pro")
     }
 
     buildTypes {
@@ -54,9 +47,6 @@ android {
 }
 
 dependencies {
-    implementation(project (":core"))
-    implementation(project (":info"))
     implementation("androidx.core:core-ktx:1.12.0")
     implementation("androidx.appcompat:appcompat:1.6.1")
-    implementation("com.google.android.material:material:1.11.0")
 }

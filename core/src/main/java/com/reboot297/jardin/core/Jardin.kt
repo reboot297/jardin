@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023. Viktor Pop
+ * Copyright (c) 2024. Viktor Pop
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,26 @@
  * limitations under the License.
  */
 
-pluginManagement {
-    repositories {
-        google()
-        mavenCentral()
-        gradlePluginPortal()
-    }
-}
-dependencyResolutionManagement {
-    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
-    repositories {
-        google()
-        mavenCentral()
-    }
-}
+package com.reboot297.jardin.core
 
-rootProject.name = "jardin"
-include(":demo")
-include(":info")
-include(":core")
+import android.content.Context
+import android.util.Log
+
+
+object Jardin {
+    private const val TAG = "Jardin"
+
+    fun startRecording() {
+        Log.d(TAG, "startRecording")
+        // TODO(Viktor) record logs
+    }
+
+    fun stopRecording() {
+        Log.d(TAG, "stopRecording")
+        // TODO(Viktor) record logs
+    }
+
+    fun shareLogs(context: Context) {
+        // TODO(Viktor) share log file with intent
+    }
+}
