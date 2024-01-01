@@ -37,7 +37,9 @@ class MainActivity : AppCompatActivity() {
         val recyclerView = findViewById<RecyclerView>(R.id.itemsListView)
         recyclerView.adapter = adapter
 
-        findViewById<Button>(R.id.startRecording).setOnClickListener { Jardin.startRecording() }
+        findViewById<Button>(R.id.startRecording).setOnClickListener {
+            Jardin.startRecording(applicationContext)
+        }
         findViewById<Button>(R.id.stopRecording).setOnClickListener { Jardin.stopRecording() }
     }
 

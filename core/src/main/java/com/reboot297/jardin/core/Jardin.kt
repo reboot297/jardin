@@ -18,22 +18,49 @@ package com.reboot297.jardin.core
 
 import android.content.Context
 import android.util.Log
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlin.coroutines.CoroutineContext
 
+internal const val TAG = "Jardin"
 
-object Jardin {
-    private const val TAG = "Jardin"
+/**
+ * Jardin logs manager.
+ */
+object Jardin : CoroutineScope {
 
-    fun startRecording() {
-        Log.d(TAG, "startRecording")
-        // TODO(Viktor) record logs
+    private val coroutineExceptionHandler = CoroutineExceptionHandler { _, e ->
+        handleException(e)
     }
 
+    override val coroutineContext: CoroutineContext =
+        Dispatchers.Main.immediate + coroutineExceptionHandler
+
+    private val logcatManager = LogcatManager()
+    private fun handleException(e: Throwable) {
+        e.printStackTrace()
+    }
+
+    /**
+     * Start recording.
+     * @param context application context
+     */
+    fun startRecording(context: Context) {
+        Log.d(TAG, "startRecording")
+        launch(Dispatchers.IO) {
+            logcatManager.start(context)
+        }
+    }
+
+    /**
+     * Stop recording.
+     */
     fun stopRecording() {
         Log.d(TAG, "stopRecording")
-        // TODO(Viktor) record logs
-    }
-
-    fun shareLogs(context: Context) {
-        // TODO(Viktor) share log file with intent
+        launch(Dispatchers.IO) {
+            logcatManager.stop()
+        }
     }
 }
