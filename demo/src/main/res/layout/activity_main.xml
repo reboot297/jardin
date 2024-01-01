@@ -23,6 +23,18 @@
     android:padding="16dp"
     tools:context=".MainActivity">
 
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/startRecording"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/start_recording"/>
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/stopRecording"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/stop_recording"/>
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/itemsListView"
         android:layout_width="match_parent"

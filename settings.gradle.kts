@@ -32,3 +32,4 @@ dependencyResolutionManagement {
 rootProject.name = "jardin"
 include(":demo")
 include(":info")
+include(":core")

@@ -18,9 +18,11 @@ package com.reboot297.jardin
 
 import android.os.Build
 import android.os.Bundle
+import android.widget.Button
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.RecyclerView
+import com.reboot297.jardin.core.Jardin
 import com.reboot297.jardin.info.Info
 import com.reboot297.jardin.info.InfoAdapter
 import com.reboot297.jardin.info.Item
@@ -34,6 +36,11 @@ class MainActivity : AppCompatActivity() {
         val adapter = InfoAdapter(data)
         val recyclerView = findViewById<RecyclerView>(R.id.itemsListView)
         recyclerView.adapter = adapter
+
+        findViewById<Button>(R.id.startRecording).setOnClickListener {
+            Jardin.startRecording(applicationContext)
+        }
+        findViewById<Button>(R.id.stopRecording).setOnClickListener { Jardin.stopRecording() }
     }
 
     private val data = arrayOf(
