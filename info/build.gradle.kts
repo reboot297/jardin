@@ -20,6 +20,14 @@ plugins {
     id("io.gitlab.arturbosch.detekt")
 }
 
+rootProject.extra.apply {
+    set("PUBLISH_GROUP_ID", "io.github.reboot297")
+    set("PUBLISH_ARTIFACT_ID", "jardin-info")
+    set("PUBLISH_VERSION", "0.2.0")
+}
+
+apply(from = "${rootDir}/scripts/publish-module.gradle")
+
 apply {
     from("$rootDir/tools/script-check.gradle")
 }
