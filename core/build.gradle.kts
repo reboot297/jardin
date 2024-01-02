@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023. Viktor Pop
+ * Copyright (c) 2024. Viktor Pop
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,8 +22,8 @@ plugins {
 
 rootProject.extra.apply {
     set("PUBLISH_GROUP_ID", "io.github.reboot297")
-    set("PUBLISH_ARTIFACT_ID", "jardin-info")
-    set("PUBLISH_VERSION", "0.2.0")
+    set("PUBLISH_ARTIFACT_ID", "jardin-core")
+    set("PUBLISH_VERSION", "0.1.0")
 }
 
 apply(from = "${rootDir}/scripts/publish-module.gradle")
@@ -33,7 +33,7 @@ apply {
 }
 
 android {
-    namespace = "com.reboot297.jardin.info"
+    namespace = "com.reboot297.jardin.core"
     compileSdk = 34
 
     defaultConfig {

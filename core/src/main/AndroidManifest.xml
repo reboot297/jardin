@@ -1,5 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
 <!--
-  ~ Copyright (c) 2023. Viktor Pop
+  ~ Copyright (c) 2024. Viktor Pop
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -14,8 +15,6 @@
   ~ limitations under the License.
   -->
 
-<resources>
-    <string name="app_name">Jardín</string>
-    <string name="start_recording">Start recording</string>
-    <string name="stop_recording">Stop recording</string>
-</resources>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+</manifest>
