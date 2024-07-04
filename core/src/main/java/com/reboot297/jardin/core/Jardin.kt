@@ -22,6 +22,7 @@ import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.io.File
 import kotlin.coroutines.CoroutineContext
 
 internal const val TAG = "Jardin"
@@ -62,6 +63,13 @@ object Jardin : CoroutineScope {
         launch(Dispatchers.IO) {
             logcatManager.stop()
         }
+    }
+
+    /**
+     * Returns directory with log files.
+     */
+    fun getStorage(context: Context): File {
+        return logcatManager.getFilesDir(context)
     }
 
     /**

@@ -19,4 +19,9 @@
     <string name="start_recording">Start recording</string>
     <string name="stop_recording">Stop recording</string>
     <string name="clear_logs">Clear log files</string>
+    <string name="share_logs">Share log files</string>
+
+    <string name="sharing_title">Choose file to share</string>
+    <string name="dialog_share_cancel">Cancel</string>
+    <string name="dialog_share_ok">Share files</string>
 </resources>

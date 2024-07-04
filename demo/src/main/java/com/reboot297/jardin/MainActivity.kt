@@ -26,6 +26,7 @@ import com.reboot297.jardin.core.Jardin
 import com.reboot297.jardin.info.Info
 import com.reboot297.jardin.info.InfoAdapter
 import com.reboot297.jardin.info.Item
+import com.reboot297.jardin.sharing.shareLogs
 
 class MainActivity : AppCompatActivity() {
 
@@ -41,7 +42,10 @@ class MainActivity : AppCompatActivity() {
             Jardin.startRecording(applicationContext)
         }
         findViewById<Button>(R.id.stopRecording).setOnClickListener { Jardin.stopRecording() }
-        findViewById<Button>(R.id.clearLogFiles).setOnClickListener { Jardin.clearAllLogs(applicationContext) }
+        findViewById<Button>(R.id.clearLogFiles).setOnClickListener {
+            Jardin.clearAllLogs(applicationContext)
+        }
+        findViewById<Button>(R.id.shareLogFiles).setOnClickListener { shareLogs() }
     }
 
     private val data = arrayOf(

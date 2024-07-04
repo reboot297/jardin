@@ -94,7 +94,7 @@ internal class LogcatManager {
     internal fun getFilesDir(context: Context): File {
         val dir = File(context.filesDir, FILES_DIR)
         dir.mkdirs()
-        return  dir
+        return dir
     }
 
     /**
