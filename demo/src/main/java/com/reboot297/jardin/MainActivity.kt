@@ -41,6 +41,7 @@ class MainActivity : AppCompatActivity() {
             Jardin.startRecording(applicationContext)
         }
         findViewById<Button>(R.id.stopRecording).setOnClickListener { Jardin.stopRecording() }
+        findViewById<Button>(R.id.clearLogFiles).setOnClickListener { Jardin.clearAllLogs(applicationContext) }
     }
 
     private val data = arrayOf(

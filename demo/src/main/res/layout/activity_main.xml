@@ -35,6 +35,12 @@
         android:layout_height="wrap_content"
         android:text="@string/stop_recording"/>
 
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/clearLogFiles"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/clear_logs"/>
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/itemsListView"
         android:layout_width="match_parent"

@@ -25,6 +25,8 @@ import java.io.FileWriter
 import java.io.IOException
 import java.io.InputStreamReader
 
+internal const val FILES_DIR = "jardin/log-files"
+
 /**
  * Manager for collecting logs from logcat.
  */
@@ -56,7 +58,7 @@ internal class LogcatManager {
      * @param args logcat argument
      */
     private fun executeLogcat(context: Context, args: String = "") {
-        val file = File(context.filesDir, "jardin" + System.currentTimeMillis() + ".txt")
+        val file = File(getFilesDir(context), "log-${System.currentTimeMillis()}.txt")
         var fileWriter: FileWriter? = null
         var bufferedWriter: BufferedWriter? = null
         try {
@@ -83,6 +85,24 @@ internal class LogcatManager {
             } catch (e: IOException) {
                 e.printStackTrace()
             }
+        }
+    }
+
+    /**
+     * Get directory with log files.
+     */
+    internal fun getFilesDir(context: Context): File {
+        val dir = File(context.filesDir, FILES_DIR)
+        dir.mkdirs()
+        return  dir
+    }
+
+    /**
+     * Clear log files.
+     */
+    internal fun clearFilesDir(context: Context) {
+        getFilesDir(context).listFiles()?.forEach { file ->
+            file.delete()
         }
     }
 }

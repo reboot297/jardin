@@ -63,4 +63,14 @@ object Jardin : CoroutineScope {
             logcatManager.stop()
         }
     }
+
+    /**
+     * Clear all log files.
+     */
+    fun clearAllLogs(context: Context) {
+        Log.d(TAG, "Clear files")
+        launch(Dispatchers.IO) {
+            logcatManager.clearFilesDir(context)
+        }
+    }
 }
